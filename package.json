@@ -43,5 +43,9 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"@google/model-viewer": "^4.1.0",
+		"three": "^0.172.0"
+	}
 }
