@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { page } from "$app/state";
+  import { goto } from "$app/navigation";
 </script>
 
 <nav class="nav-container">
   <div class="nav-links">
-    <a href="/" class:active={$page.url.pathname === '/'}>Home</a>
-    <a href="/learn" class:active={$page.url.pathname === '/learn'}>Learn</a>
-    <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
+    <a href="/" class:active={page.url.pathname === "/"}>Home</a>
+    <a href="/learn" class:active={page.url.pathname === "/learn"}>Learn</a>
+    <a href="/interactive" class:active={page.url.pathname === "/interactive"}
+      >Interactive</a
+    >
   </div>
 </nav>
 

@@ -1,172 +1,185 @@
 <script lang="ts">
-  let title = 'Interactive Page';
-  let counter = 0;
-  let userInput = '';
-  let messages: string[] = [];
-  
-  // Add your interactive page functions here
-  function increment() {
-    counter++;
+  import {
+    WebGLRenderer,
+    PerspectiveCamera,
+    Scene,
+    Color,
+    HemisphereLight,
+    MeshBasicMaterial,
+    WebGLRenderTarget,
+    Group,
+    Box3,
+    Vector3,
+    MathUtils,
+    Mesh,
+    MeshPhongMaterial,
+    DoubleSide,
+    NoColorSpace,
+    Quaternion,
+    Material,
+  } from "three";
+  import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+  import url from "./model.glb?url";
+  import { onDestroy, onMount } from "svelte";
+  import { on } from "svelte/events";
+
+  let canvas: HTMLCanvasElement;
+
+  const pickPosition = {
+    x: 0,
+    y: 0,
+  };
+  clearPickPosition();
+
+  function getCanvasRelativePosition(event: MouseEvent | Touch) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) * canvas.width) / rect.width,
+      y: ((event.clientY - rect.top) * canvas.height) / rect.height,
+    };
   }
 
-  function decrement() {
-    counter--;
+  function setPickPosition(event: MouseEvent | Touch) {
+    const pos = getCanvasRelativePosition(event);
+    pickPosition.x = pos.x;
+    pickPosition.y = pos.y;
   }
 
-  function reset() {
-    counter = 0;
+  function clearPickPosition() {
+    pickPosition.x = -100000;
+    pickPosition.y = -100000;
   }
 
-  function addMessage() {
-    if (userInput.trim()) {
-      messages = [...messages, userInput.trim()];
-      userInput = '';
+  const camera = new PerspectiveCamera(45, 1, 0.1, 100);
+  const scene = new Scene();
+  scene.background = new Color("black");
+  scene.add(new HemisphereLight(0xffffff, 0xffffff, 2));
+  const redMaterial = new MeshBasicMaterial({
+    color: 0xff0000,
+  });
+  let mid = 1;
+  const map = new Map();
+  const pickTexture = new WebGLRenderTarget(1, 1);
+  const pickBuffer = new Uint8Array(4);
+  const pickingScene = new Scene();
+  pickingScene.background = new Color(0);
+
+  let destroy = () => {};
+  let loaded = $state(false);
+  onMount(async () => {
+    // Not putting this in onMount sometimes causes it to be evaluated on the server, which causes issues
+    const loader = new GLTFLoader();
+    const { resolve, promise } = Promise.withResolvers<Group>();
+    loader.load(url, (gltf) => resolve(gltf.scene));
+
+    const renderer = new WebGLRenderer({
+      antialias: true,
+      canvas,
+    });
+    renderer.setSize(600, 600, false);
+    const controls = new OrbitControls(camera, canvas);
+
+    destroy = on(
+      window,
+      "touchstart",
+      (event) => {
+        event.preventDefault();
+        setPickPosition(event.touches[0]);
+      },
+      {
+        passive: false,
+      }
+    );
+
+    const root = await promise;
+    scene.add(root);
+    const box = new Box3().setFromObject(root);
+    const boxSize = box.getSize(new Vector3()).length();
+    const boxCenter = box.getCenter(new Vector3());
+
+    controls.maxDistance = boxSize * 10;
+    controls.target.copy(boxCenter);
+    controls.update();
+
+    const halfSizeToFitOnScreen = boxSize * 0.25;
+    const halfFovY = MathUtils.degToRad(camera.fov * 0.5);
+    const distance = halfSizeToFitOnScreen / Math.tan(halfFovY);
+    const direction = new Vector3()
+      .subVectors(camera.position, boxCenter)
+      .multiply(new Vector3(1, 0, 1))
+      .normalize();
+
+    camera.position.copy(direction.multiplyScalar(distance).add(boxCenter));
+    camera.near = boxSize / 100;
+    camera.far = boxSize * 100;
+    camera.updateProjectionMatrix();
+    camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z);
+
+    scene.traverse((mesh) => {
+      if (!(mesh instanceof Mesh)) return;
+      map.set(mid, mesh);
+      const pickingMaterial = new MeshPhongMaterial({
+        emissive: new Color().setHex(mid, NoColorSpace),
+        color: new Color(0, 0, 0),
+        specular: new Color(0, 0, 0),
+        side: DoubleSide,
+      });
+      const picked = new Mesh(mesh.geometry, pickingMaterial);
+      pickingScene.add(picked);
+      picked.position.copy(mesh.getWorldPosition(new Vector3()));
+      picked.quaternion.copy(mesh.getWorldQuaternion(new Quaternion()));
+      picked.scale.copy(mesh.getWorldScale(new Vector3()));
+      mid++;
+    });
+
+    let last: Mesh | undefined, lastColor: Material, id: number;
+    function render() {
+      const pixelRatio = renderer.getPixelRatio();
+      camera.setViewOffset(
+        renderer.getContext().drawingBufferWidth,
+        renderer.getContext().drawingBufferHeight,
+        Math.floor(pickPosition.x * pixelRatio),
+        Math.floor(pickPosition.y * pixelRatio),
+        1,
+        1
+      );
+      renderer.setRenderTarget(pickTexture);
+      renderer.render(pickingScene, camera);
+      renderer.setRenderTarget(null);
+      camera.clearViewOffset();
+      renderer.readRenderTargetPixels(pickTexture, 0, 0, 1, 1, pickBuffer);
+
+      const pid = (pickBuffer[0] << 16) | (pickBuffer[1] << 8) | pickBuffer[2];
+      const intersectedObject = map.get(pid);
+      if (last) {
+        last.material = lastColor;
+        last = undefined;
+      }
+      if (intersectedObject) {
+        lastColor = intersectedObject.material;
+        intersectedObject.material = redMaterial;
+        last = intersectedObject;
+      }
+      renderer.render(scene, camera);
+      id = requestAnimationFrame(render);
     }
-  }
+    render();
+    loaded = true;
+  });
 
-  function clearMessages() {
-    messages = [];
-  }
+  onDestroy(destroy);
 </script>
 
-<svelte:head>
-  <title>{title}</title>
-</svelte:head>
-
-<div class="page-container">
-  <h1>{title}</h1>
-  <p>This is the interactive section with dynamic components.</p>
-</div>
+<svelte:window
+  onmousemove={setPickPosition}
+  onmouseout={clearPickPosition}
+  onmouseleave={clearPickPosition}
+  ontouchmove={(event) => setPickPosition(event.touches[0])}
+  ontouchend={clearPickPosition}
+/>
+<div style:display={loaded ? "none" : "block"}>loading model...</div>
+<canvas bind:this={canvas} style:display={loaded ? "block" : "none"}></canvas>
 
 <style>
-  .page-container {
-    min-height: 400px;
-  }
-
-  .content-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    background: #fafafa;
-  }
-
-  .counter-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-
-  .counter-btn {
-    background: #007bff;
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
-
-  .counter-btn:hover {
-    background: #0056b3;
-  }
-
-  .counter-display {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #333;
-    min-width: 3rem;
-    text-align: center;
-  }
-
-  .reset-btn {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .reset-btn:hover {
-    background: #545b62;
-  }
-
-  .input-group {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-
-  .action-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .action-btn:hover {
-    background: #218838;
-  }
-
-  .clear-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .clear-btn:hover {
-    background: #c82333;
-  }
-
-  .messages {
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  .message {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    background: white;
-    border: 1px solid #e2e2e2;
-    border-radius: 4px;
-  }
-
-  .message-number {
-    color: #6c757d;
-    font-weight: bold;
-    min-width: 2rem;
-  }
-
-  .message-text {
-    flex: 1;
-  }
-
-  h1 {
-    color: #333;
-    margin-bottom: 1rem;
-  }
-
-  h2 {
-    color: #555;
-    margin-bottom: 0.5rem;
-  }
 </style>
