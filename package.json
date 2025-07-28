@@ -46,6 +46,6 @@
 		"svelte"
 	],
 	"dependencies": {
-		"three": "^0.178.0"
+		"three": "^0.160.0"
 	}
 }

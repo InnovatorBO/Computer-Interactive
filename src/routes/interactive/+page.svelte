@@ -21,10 +21,12 @@
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import url from "./model.glb?url";
+  import url2 from "./model2.glb?url";
   import { onDestroy, onMount } from "svelte";
   import { on } from "svelte/events";
 
   let canvas: HTMLCanvasElement;
+  let canvas2: HTMLCanvasElement;
 
   const pickPosition = {
     x: 0,
@@ -67,6 +69,7 @@
 
   let destroy = () => {};
   let loaded = $state(false);
+  let showSecondModel = $state(false);
   onMount(async () => {
     // Not putting this in onMount sometimes causes it to be evaluated on the server, which causes issues
     const loader = new GLTFLoader();
@@ -166,6 +169,59 @@
     }
     render();
     loaded = true;
+
+    function initSecondModel() {
+      if (canvas2 && !canvas2._threeInitialized) {
+        canvas2._threeInitialized = true;
+        const renderer2 = new WebGLRenderer({ canvas: canvas2, antialias: true });
+        renderer2.setSize(300, 300, false);
+        const scene2 = new Scene();
+        scene2.background = new Color("#222");
+        const camera2 = new PerspectiveCamera(45, 1, 0.1, 100);
+        scene2.add(new HemisphereLight(0xffffff, 0x444444, 2));
+        const controls2 = new OrbitControls(camera2, canvas2);
+        const loader2 = new GLTFLoader();
+        loader2.load(url2, (gltf) => {
+          const root2 = gltf.scene;
+          scene2.add(root2);
+          // Center and fit model2
+          const box2 = new Box3().setFromObject(root2);
+          const boxSize2 = box2.getSize(new Vector3()).length();
+          const boxCenter2 = box2.getCenter(new Vector3());
+          controls2.maxDistance = boxSize2 * 10;
+          controls2.target.copy(boxCenter2);
+          controls2.update();
+          const halfSizeToFitOnScreen2 = boxSize2 * 0.25;
+          const halfFovY2 = MathUtils.degToRad(camera2.fov * 0.5);
+          const distance2 = halfSizeToFitOnScreen2 / Math.tan(halfFovY2);
+          const direction2 = new Vector3()
+            .subVectors(camera2.position, boxCenter2)
+            .multiply(new Vector3(1, 0, 1))
+            .normalize();
+          camera2.position.copy(direction2.multiplyScalar(distance2).add(boxCenter2));
+          camera2.near = boxSize2 / 100;
+          camera2.far = boxSize2 * 100;
+          camera2.updateProjectionMatrix();
+          camera2.lookAt(boxCenter2.x, boxCenter2.y, boxCenter2.z);
+          function animate2() {
+            renderer2.render(scene2, camera2);
+            requestAnimationFrame(animate2);
+          }
+          animate2();
+        });
+      }
+    }
+
+    // Add click handler
+    function handleClick() {
+      if (last) {
+        showSecondModel = !showSecondModel;  
+        if (showSecondModel) {  
+          initSecondModel();
+        }
+      }
+    }
+    canvas.onclick = handleClick;
   });
 
   onDestroy(destroy);
@@ -178,8 +234,42 @@
   ontouchmove={(event) => setPickPosition(event.touches[0])}
   ontouchend={clearPickPosition}
 />
-<div style:display={loaded ? "none" : "block"}>loading model...</div>
-<canvas bind:this={canvas} style:display={loaded ? "block" : "none"}></canvas>
+<div class="container">
+  <div class="left">
+    <div style:display={loaded ? "none" : "block"}>loading model...</div>
+    <canvas bind:this={canvas} style:display={loaded ? "block" : "none"}></canvas>
+  </div>
+  <div class="right-panel" style:display={showSecondModel ? 'block' : 'none'}>
+    <canvas bind:this={canvas2} width="300" height="300"></canvas>
+  </div>
+</div>
 
 <style>
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.left {
+  flex: 1;
+  min-width: 600px;
+}
+.right-panel {
+  flex: 1;
+  background: #f8f8f8;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  min-width: 300px;
+}
+canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  background: #000;
+}
 </style>
