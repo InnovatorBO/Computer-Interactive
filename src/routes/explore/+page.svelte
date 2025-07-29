@@ -85,14 +85,16 @@
       requestAnimationFrame(animate);
       if (model) {
       raycaster.setFromCamera(mouse, camera);
+      controls.update();
 
       // get all meshes under model
       const intersects = raycaster.intersectObjects(model.children, true);
 
       if (intersects.length > 0) {
-        if (INTERSECTED != intersects[0].object && intersects[0].object.name != "BackPanel" && intersects[0].object.name != "pCube884" && intersects[0].object.name != "pCube891" && intersects[0].object.name != "pCube890" && intersects[0].object.name != "pCube889" && intersects[0].object.name != "pCube896" &&  intersects[0].object.name != "PSU_Bracket1" && intersects[0].object.name != "PSU_Bracket2" && intersects[0].object.name != "pCylinder100" && intersects[0].object.name != "pCylinder99" && intersects[0].object.name != "pCylinder98" && intersects[0].object.name != "pCylinder97" && intersects[0].object.name != "GPU_Bracket1" && intersects[0].object.name != "pCube1218" && intersects[0].object.name != "pCube1235") {
+        const candidate = intersects[0].object
+        if (INTERSECTED != candidate && candidate.name != "BackPanel" && candidate.name != "pCube884" && candidate.name != "pCube891" && candidate.name != "pCube890" && candidate.name != "pCube889" && candidate.name != "pCube896" && candidate.name != "PSU_Bracket1" && candidate.name != "PSU_Bracket2" && candidate.name != "pCylinder100" && candidate.name != "pCylinder99" && candidate.name != "pCylinder98" && candidate.name != "pCylinder97" && candidate.name != "GPU_Bracket1" && candidate.name != "pCube1218" && candidate.name != "pCube1235") {
           if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-          INTERSECTED = intersects[0].object;
+          INTERSECTED = candidate;
           INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
           INTERSECTED.material.emissive.setHex(0xff0000);  // highlight color
         }
@@ -102,7 +104,6 @@
        }
       }
       }
-      controls.update();
       renderer.render(scene, camera);
     }
     animate();
