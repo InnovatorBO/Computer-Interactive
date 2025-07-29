@@ -45,6 +45,8 @@
 		"svelte"
 	],
 	"dependencies": {
+		"@google/model-viewer": "^4.1.0",
+		"@jscad/modeling": "^2.12.5",
 		"@types/three": "^0.178.1",
 		"three": "^0.178.0"
 	}
