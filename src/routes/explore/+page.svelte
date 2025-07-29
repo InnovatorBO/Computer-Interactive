@@ -1,8 +1,11 @@
 <script>
   import { onMount } from 'svelte';
   import * as THREE from 'three';
+  import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+  import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 
   let container;  // Reference to the div containing the canvas
   let showInfo = false;
@@ -21,6 +24,18 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // OutlinePass: width, height, scene, camera
+    const outlinePass = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      scene,
+      camera
+    );
+    composer.addPass(outlinePass);
+
     // OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -30,7 +45,7 @@
     light.position.set(5, 10, 7.5);
     scene.add(light);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
 
     // Load model
@@ -69,12 +84,14 @@
 
       if (intersects.length > 0) {
         const clicked = intersects[0].object;
+        outlinePass.selectedObjects = [clicked]
         infoText = clicked.name || 'Clicked object';
         infoLeft = event.clientX;
         infoTop = event.clientY;
         showInfo = true;
       } else {
         showInfo = false;
+        outlinePass.selectedObjects = []
       }
     }
 
@@ -83,37 +100,19 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      if (model) {
-      raycaster.setFromCamera(mouse, camera);
       controls.update();
-
-      // get all meshes under model
-      const intersects = raycaster.intersectObjects(model.children, true);
-
-      if (intersects.length > 0) {
-        const candidate = intersects[0].object
-        if (INTERSECTED != candidate && candidate.name != "BackPanel" && candidate.name != "pCube884" && candidate.name != "pCube891" && candidate.name != "pCube890" && candidate.name != "pCube889" && candidate.name != "pCube896" && candidate.name != "PSU_Bracket1" && candidate.name != "PSU_Bracket2" && candidate.name != "pCylinder100" && candidate.name != "pCylinder99" && candidate.name != "pCylinder98" && candidate.name != "pCylinder97" && candidate.name != "GPU_Bracket1" && candidate.name != "pCube1218" && candidate.name != "pCube1235") {
-          if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-          INTERSECTED = candidate;
-          INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-          INTERSECTED.material.emissive.setHex(0xff0000);  // highlight color
-        }
-       else {
-        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-        INTERSECTED = null;
-       }
-      }
-      }
-      renderer.render(scene, camera);
+      composer.render();
     }
     animate();
 
     // Resize handling
     window.addEventListener('resize', () => {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    });
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+  });
+
 
     return () => {
       renderer.dispose();
