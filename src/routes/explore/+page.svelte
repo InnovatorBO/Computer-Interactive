@@ -9,7 +9,7 @@
   let infoText = '';
   let infoLeft = 0;
   let infoTop = 0;
-
+  let INTERSECTED = null
   onMount(() => {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -54,6 +54,10 @@
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
     function onClick(event) {
       // Convert mouse coordinates
       const rect = renderer.domElement.getBoundingClientRect();
@@ -74,10 +78,30 @@
       }
     }
 
+    window.addEventListener('mousemove', onMouseMove, false)
     renderer.domElement.addEventListener('click', onClick);
 
     function animate() {
       requestAnimationFrame(animate);
+      if (model) {
+      raycaster.setFromCamera(mouse, camera);
+
+      // get all meshes under model
+      const intersects = raycaster.intersectObjects(model.children, true);
+
+      if (intersects.length > 0) {
+        if (INTERSECTED != intersects[0].object && intersects[0].object.name != "BackPanel" && intersects[0].object.name != "pCube884" && intersects[0].object.name != "pCube891" && intersects[0].object.name != "pCube890" && intersects[0].object.name != "pCube889" && intersects[0].object.name != "pCube896" &&  intersects[0].object.name != "PSU_Bracket1" && intersects[0].object.name != "PSU_Bracket2" && intersects[0].object.name != "pCylinder100" && intersects[0].object.name != "pCylinder99" && intersects[0].object.name != "pCylinder98" && intersects[0].object.name != "pCylinder97" && intersects[0].object.name != "GPU_Bracket1" && intersects[0].object.name != "pCube1218" && intersects[0].object.name != "pCube1235") {
+          if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+          INTERSECTED = intersects[0].object;
+          INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+          INTERSECTED.material.emissive.setHex(0xff0000);  // highlight color
+        }
+       else {
+        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+        INTERSECTED = null;
+       }
+      }
+      }
       controls.update();
       renderer.render(scene, camera);
     }
