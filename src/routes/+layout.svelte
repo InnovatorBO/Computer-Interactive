@@ -8,6 +8,7 @@
     <a href="/" class:active={$page.url.pathname === '/'}>Home</a>
     <a href="/learn" class:active={$page.url.pathname === '/learn'}>Learn</a>
     <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
+    <a href="/game_page" class:active={$page.url.pathname === '/game_page'}>Game</a>
   </div>
 </nav>
 
@@ -47,7 +48,6 @@
   }
 
   .main-content {
-    /* Remove padding and max-width constraints */
-    /* Let individual pages control their own layout */
+
   }
 </style>
