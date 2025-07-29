@@ -11,10 +11,10 @@
     Vector3,
     MathUtils,
     Mesh,
-    MeshPhongMaterial,
     DoubleSide,
     NoColorSpace,
     Quaternion,
+    MeshBasicMaterial,
   } from "three";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -29,11 +29,33 @@
   scene.background = new Color("black");
   scene.add(new HemisphereLight(0xffffff, 0xffffff, 2));
   let mid = 1;
-  const map = new Map<number, Mesh>();
+  const map = new Map<number, string>();
   const pickTexture = new WebGLRenderTarget(1, 1);
   const pickBuffer = new Uint8Array(4);
   const pickingScene = new Scene();
   pickingScene.background = new Color(0);
+
+  // todo need better text
+  const CORE_COMPONENTS = {
+    Corsair_Fan:
+      "fan makes sure that your computer doesn't become a warm brick",
+    Corsair_Fan1:
+      "fan 2 makes sure that your computer doesn't become a warm brick",
+    Corsair_Fan2:
+      "fan 3 makes sure that your computer doesn't become a warm brick",
+    CPU: "CPU does processing",
+    M2: "M2",
+    MotherBoard: "motherboard you put stuff on it",
+    PSU: "PSU",
+    Radiator: "radiator",
+    RAM: "RAM stick so you can do more stuff",
+    RAM1: "2nd RAM stick so you can do more stuff",
+    RAM2: "3rd RAM stick so you can do more stuff",
+    RAM3: "4th RAM stick so you can do more stuff",
+    RTX2080ti: "RTX2080ti gpu because gaming",
+    SSD: "SSD need more disk space for the new AAA game",
+    WaterCooling: "cooling i guess",
+  } as Record<string, string>;
 
   const toDestroy: (() => void)[] = [];
   let loaded = $state(false);
@@ -74,21 +96,25 @@
     camera.updateProjectionMatrix();
     camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z);
 
-    scene.traverse((mesh) => {
-      if (!(mesh instanceof Mesh)) return;
-      map.set(mid, mesh);
-      const pickingMaterial = new MeshPhongMaterial({
-        emissive: new Color().setHex(mid, NoColorSpace),
-        color: new Color(0, 0, 0),
-        specular: new Color(0, 0, 0),
-        side: DoubleSide,
-      });
-      const picked = new Mesh(mesh.geometry, pickingMaterial);
-      pickingScene.add(picked);
-      picked.position.copy(mesh.getWorldPosition(new Vector3()));
-      picked.quaternion.copy(mesh.getWorldQuaternion(new Quaternion()));
-      picked.scale.copy(mesh.getWorldScale(new Vector3()));
-      mid++;
+    scene.traverse((pMesh) => {
+      const out = CORE_COMPONENTS[pMesh.name];
+      if (out) {
+        pMesh.traverse((mesh) => {
+          if (!(mesh instanceof Mesh)) return;
+
+          map.set(mid, out);
+          const pickingMaterial = new MeshBasicMaterial({
+            color: new Color().setHex(mid, NoColorSpace),
+            side: DoubleSide,
+          });
+          const picked = new Mesh(mesh.geometry, pickingMaterial);
+          pickingScene.add(picked);
+          picked.position.copy(mesh.getWorldPosition(new Vector3()));
+          picked.quaternion.copy(mesh.getWorldQuaternion(new Quaternion()));
+          picked.scale.copy(mesh.getWorldScale(new Vector3()));
+          mid++;
+        });
+      }
     });
 
     function handleUp(event: MouseEvent | Touch) {
@@ -125,8 +151,7 @@
         info = {
           left: event.clientX,
           top: event.clientY,
-          // todo need better text
-          text: `${object.name} (more description here)`,
+          text: object,
         };
       }
     }
