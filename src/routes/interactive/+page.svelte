@@ -253,33 +253,148 @@
   }
 
   function createPCCase() {
-    // Main PC case body
-    const caseGeometry = new THREE.BoxGeometry(2, 1.2, 0.8);
+    pcCase = new THREE.Group();
+    
+    // Main case body with rounded corners
+    const caseGeometry = new THREE.BoxGeometry(2, 1.2, 0.8, 2, 2, 2);
     const caseMaterial = new THREE.MeshLambertMaterial({ 
       color: 0x2c3e50,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.95
     });
-    pcCase = new THREE.Group();
-    
     const caseBody = new THREE.Mesh(caseGeometry, caseMaterial);
     caseBody.castShadow = true;
     caseBody.receiveShadow = true;
     pcCase.add(caseBody);
 
-    // Side panel (transparent)
+    // Front panel with mesh grille
+    const frontPanelGeometry = new THREE.BoxGeometry(1.9, 1.1, 0.05);
+    const frontPanelMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const frontPanel = new THREE.Mesh(frontPanelGeometry, frontPanelMaterial);
+    frontPanel.position.set(0, 0, -0.425);
+    pcCase.add(frontPanel);
+
+    // Front panel vents (multiple small rectangles)
+    for (let i = 0; i < 12; i++) {
+      const ventGeometry = new THREE.BoxGeometry(0.15, 0.02, 0.06);
+      const ventMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const vent = new THREE.Mesh(ventGeometry, ventMaterial);
+      vent.position.set(
+        (i % 4 - 1.5) * 0.4,
+        (Math.floor(i / 4) - 1) * 0.3,
+        -0.4
+      );
+      pcCase.add(vent);
+    }
+
+    // Power button
+    const buttonGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.06, 8);
+    const buttonMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+    const powerButton = new THREE.Mesh(buttonGeometry, buttonMaterial);
+    powerButton.rotation.z = Math.PI / 2;
+    powerButton.position.set(-0.7, 0.4, -0.4);
+    pcCase.add(powerButton);
+
+    // USB ports
+    for (let i = 0; i < 4; i++) {
+      const usbGeometry = new THREE.BoxGeometry(0.02, 0.08, 0.06);
+      const usbMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const usb = new THREE.Mesh(usbGeometry, usbMaterial);
+      usb.position.set(
+        -0.7,
+        0.2 - i * 0.15,
+        -0.4
+      );
+      pcCase.add(usb);
+    }
+
+    // Side panel with tempered glass effect
     const panelGeometry = new THREE.PlaneGeometry(1.8, 1);
     const panelMaterial = new THREE.MeshLambertMaterial({ 
       color: 0x87ceeb,
       transparent: true,
-      opacity: 0.3
+      opacity: 0.2,
+      side: THREE.DoubleSide
     });
     const sidePanel = new THREE.Mesh(panelGeometry, panelMaterial);
     sidePanel.position.set(0, 0, 0.41);
     sidePanel.rotation.y = Math.PI / 2;
     pcCase.add(sidePanel);
 
-    // Motherboard
+    // Side panel frame
+    const frameGeometry = new THREE.BoxGeometry(0.05, 1.1, 0.05);
+    const frameMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const leftFrame = new THREE.Mesh(frameGeometry, frameMaterial);
+    leftFrame.position.set(-0.925, 0, 0.41);
+    pcCase.add(leftFrame);
+    
+    const rightFrame = new THREE.Mesh(frameGeometry, frameMaterial);
+    rightFrame.position.set(0.925, 0, 0.41);
+    pcCase.add(rightFrame);
+
+    // Top panel with vents
+    const topPanelGeometry = new THREE.BoxGeometry(2, 0.05, 0.8);
+    const topPanelMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const topPanel = new THREE.Mesh(topPanelGeometry, topPanelMaterial);
+    topPanel.position.set(0, 0.625, 0);
+    pcCase.add(topPanel);
+
+    // Top vents
+    for (let i = 0; i < 8; i++) {
+      const topVentGeometry = new THREE.BoxGeometry(0.2, 0.06, 0.02);
+      const topVentMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const topVent = new THREE.Mesh(topVentGeometry, topVentMaterial);
+      topVent.position.set(
+        (i - 3.5) * 0.5,
+        0.655,
+        0
+      );
+      pcCase.add(topVent);
+    }
+
+    // Rear panel with I/O ports
+    const rearPanelGeometry = new THREE.BoxGeometry(2, 1.2, 0.05);
+    const rearPanelMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+    const rearPanel = new THREE.Mesh(rearPanelGeometry, rearPanelMaterial);
+    rearPanel.position.set(0, 0, -0.425);
+    pcCase.add(rearPanel);
+
+    // Motherboard I/O shield
+    const ioShieldGeometry = new THREE.BoxGeometry(0.4, 0.3, 0.06);
+    const ioShieldMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const ioShield = new THREE.Mesh(ioShieldGeometry, ioShieldMaterial);
+    ioShield.position.set(-0.4, 0.2, -0.455);
+    pcCase.add(ioShield);
+
+    // GPU expansion slots
+    for (let i = 0; i < 3; i++) {
+      const slotGeometry = new THREE.BoxGeometry(0.02, 0.15, 0.06);
+      const slotMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const slot = new THREE.Mesh(slotGeometry, slotMaterial);
+      slot.position.set(
+        0.3 + i * 0.1,
+        -0.3,
+        -0.455
+      );
+      pcCase.add(slot);
+    }
+
+    // PSU mounting area
+    const psuMountGeometry = new THREE.BoxGeometry(0.5, 0.8, 0.05);
+    const psuMountMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const psuMount = new THREE.Mesh(psuMountGeometry, psuMountMaterial);
+    psuMount.position.set(-0.7, -0.2, -0.455);
+    pcCase.add(psuMount);
+
+    // PSU vent
+    const psuVentGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.06, 8);
+    const psuVentMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const psuVent = new THREE.Mesh(psuVentGeometry, psuVentMaterial);
+    psuVent.rotation.z = Math.PI / 2;
+    psuVent.position.set(-0.7, -0.2, -0.455);
+    pcCase.add(psuVent);
+
+    // Motherboard tray
     const motherboardGeometry = new THREE.BoxGeometry(1.6, 0.8, 0.02);
     const motherboardMaterial = new THREE.MeshLambertMaterial({ color: 0x2d5a27 });
     motherboard = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
@@ -287,16 +402,49 @@
     motherboard.castShadow = true;
     pcCase.add(motherboard);
 
-    // Add some motherboard details
+    // Motherboard circuit pattern
     const circuitGeometry = new THREE.BoxGeometry(1.4, 0.6, 0.01);
     const circuitMaterial = new THREE.MeshLambertMaterial({ color: 0x1a3d1a });
     const circuitBoard = new THREE.Mesh(circuitGeometry, circuitMaterial);
     circuitBoard.position.set(0, 0, 0.36);
     pcCase.add(circuitBoard);
 
-    // Add some small components on motherboard
-    for (let i = 0; i < 8; i++) {
-      const chipGeometry = new THREE.BoxGeometry(0.05, 0.05, 0.02);
+    // CPU socket area
+    const socketGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.02);
+    const socketMaterial = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
+    const socket = new THREE.Mesh(socketGeometry, socketMaterial);
+    socket.position.set(-0.4, 0.2, 0.37);
+    pcCase.add(socket);
+
+    // RAM slots
+    for (let i = 0; i < 4; i++) {
+      const ramSlotGeometry = new THREE.BoxGeometry(0.18, 0.05, 0.03);
+      const ramSlotMaterial = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
+      const ramSlot = new THREE.Mesh(ramSlotGeometry, ramSlotMaterial);
+      ramSlot.position.set(
+        -0.4 + (i % 2) * 0.15,
+        0.4 - Math.floor(i / 2) * 0.15,
+        0.37
+      );
+      pcCase.add(ramSlot);
+    }
+
+    // PCIe slots
+    for (let i = 0; i < 3; i++) {
+      const pcieSlotGeometry = new THREE.BoxGeometry(0.8, 0.05, 0.03);
+      const pcieSlotMaterial = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
+      const pcieSlot = new THREE.Mesh(pcieSlotGeometry, pcieSlotMaterial);
+      pcieSlot.position.set(
+        0.3 + i * 0.1,
+        -0.3,
+        0.37
+      );
+      pcCase.add(pcieSlot);
+    }
+
+    // Small motherboard components (chips, capacitors, etc.)
+    for (let i = 0; i < 15; i++) {
+      const chipGeometry = new THREE.BoxGeometry(0.03, 0.03, 0.02);
       const chipMaterial = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
       const chip = new THREE.Mesh(chipGeometry, chipMaterial);
       chip.position.set(
@@ -306,74 +454,148 @@
       );
       pcCase.add(chip);
     }
+
+    // Case feet
+    for (let i = 0; i < 4; i++) {
+      const footGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.1, 8);
+      const footMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const foot = new THREE.Mesh(footGeometry, footMaterial);
+      foot.position.set(
+        (i % 2 - 0.5) * 1.5,
+        -0.65,
+        (Math.floor(i / 2) - 0.5) * 0.6
+      );
+      pcCase.add(foot);
+    }
   }
 
   function createComponents() {
-    // CPU with heatsink
-    const cpuGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.1);
+    // CPU with detailed heatsink and fan
+    const cpuGeometry = new THREE.BoxGeometry(0.25, 0.25, 0.08);
     const cpuMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     cpuModel = new THREE.Mesh(cpuGeometry, cpuMaterial);
     cpuModel.position.set(-0.4, 0.2, 0.4);
     cpuModel.castShadow = true;
     pcCase.add(cpuModel);
 
-    // CPU heatsink
-    const heatsinkGeometry = new THREE.BoxGeometry(0.35, 0.35, 0.15);
-    const heatsinkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
-    const heatsink = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
-    heatsink.position.set(-0.4, 0.2, 0.5);
-    heatsink.castShadow = true;
-    pcCase.add(heatsink);
+    // CPU heatsink with fins
+    const heatsinkBaseGeometry = new THREE.BoxGeometry(0.35, 0.35, 0.1);
+    const heatsinkBaseMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+    const heatsinkBase = new THREE.Mesh(heatsinkBaseGeometry, heatsinkBaseMaterial);
+    heatsinkBase.position.set(-0.4, 0.2, 0.5);
+    heatsinkBase.castShadow = true;
+    pcCase.add(heatsinkBase);
 
-    // GPU with more detail
-    const gpuGeometry = new THREE.BoxGeometry(0.8, 0.15, 0.4);
+    // Heatsink fins
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        const finGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.15);
+        const finMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
+        const fin = new THREE.Mesh(finGeometry, finMaterial);
+        fin.position.set(
+          -0.4 + (i - 3.5) * 0.04,
+          0.2 + (j - 3.5) * 0.04,
+          0.6
+        );
+        pcCase.add(fin);
+      }
+    }
+
+    // CPU fan
+    const cpuFanGeometry = new THREE.CylinderGeometry(0.12, 0.12, 0.02, 8);
+    const cpuFanMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+    const cpuFan = new THREE.Mesh(cpuFanGeometry, cpuFanMaterial);
+    cpuFan.rotation.z = Math.PI / 2;
+    cpuFan.position.set(-0.4, 0.2, 0.58);
+    pcCase.add(cpuFan);
+
+    // GPU with detailed design
+    const gpuGeometry = new THREE.BoxGeometry(0.8, 0.12, 0.35);
     const gpuMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     gpuModel = new THREE.Mesh(gpuGeometry, gpuMaterial);
     gpuModel.position.set(0.3, -0.3, 0.4);
     gpuModel.castShadow = true;
     pcCase.add(gpuModel);
 
-    // GPU fan
-    const fanGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.02, 8);
-    const fanMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-    const gpuFan = new THREE.Mesh(fanGeometry, fanMaterial);
-    gpuFan.rotation.z = Math.PI / 2;
-    gpuFan.position.set(0.3, -0.3, 0.6);
-    pcCase.add(gpuFan);
+    // GPU PCB
+    const gpuPcbGeometry = new THREE.BoxGeometry(0.8, 0.02, 0.35);
+    const gpuPcbMaterial = new THREE.MeshLambertMaterial({ color: 0x2d5a27 });
+    const gpuPcb = new THREE.Mesh(gpuPcbGeometry, gpuPcbMaterial);
+    gpuPcb.position.set(0.3, -0.3, 0.42);
+    pcCase.add(gpuPcb);
 
-    // GPU backplate
-    const backplateGeometry = new THREE.BoxGeometry(0.8, 0.02, 0.4);
+    // GPU fans (dual fans)
+    for (let i = 0; i < 2; i++) {
+      const gpuFanGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8);
+      const gpuFanMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+      const gpuFan = new THREE.Mesh(gpuFanGeometry, gpuFanMaterial);
+      gpuFan.rotation.z = Math.PI / 2;
+      gpuFan.position.set(0.3 + (i - 0.5) * 0.2, -0.3, 0.6);
+      pcCase.add(gpuFan);
+    }
+
+    // GPU backplate with logo
+    const backplateGeometry = new THREE.BoxGeometry(0.8, 0.02, 0.35);
     const backplateMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
     const backplate = new THREE.Mesh(backplateGeometry, backplateMaterial);
     backplate.position.set(0.3, -0.3, 0.2);
     pcCase.add(backplate);
 
-    // RAM modules
-    const ramGeometry = new THREE.BoxGeometry(0.15, 0.6, 0.05);
+    // GPU power connectors
+    for (let i = 0; i < 2; i++) {
+      const connectorGeometry = new THREE.BoxGeometry(0.02, 0.08, 0.02);
+      const connectorMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const connector = new THREE.Mesh(connectorGeometry, connectorMaterial);
+      connector.position.set(0.3 + (i - 0.5) * 0.1, -0.3, 0.25);
+      pcCase.add(connector);
+    }
+
+    // RAM modules with heat spreaders
+    const ramGeometry = new THREE.BoxGeometry(0.12, 0.55, 0.04);
     const ramMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     ramModel = new THREE.Mesh(ramGeometry, ramMaterial);
     ramModel.position.set(-0.4, 0.4, 0.4);
     ramModel.castShadow = true;
     pcCase.add(ramModel);
 
+    // RAM heat spreader
+    const ramHeatspreaderGeometry = new THREE.BoxGeometry(0.12, 0.55, 0.06);
+    const ramHeatspreaderMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
+    const ramHeatspreader = new THREE.Mesh(ramHeatspreaderGeometry, ramHeatspreaderMaterial);
+    ramHeatspreader.position.set(-0.4, 0.4, 0.43);
+    pcCase.add(ramHeatspreader);
+
     // Second RAM module
-    const ram2Geometry = new THREE.BoxGeometry(0.15, 0.6, 0.05);
+    const ram2Geometry = new THREE.BoxGeometry(0.12, 0.55, 0.04);
     const ram2Material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     const ram2 = new THREE.Mesh(ram2Geometry, ram2Material);
     ram2.position.set(-0.25, 0.4, 0.4);
     ram2.castShadow = true;
     pcCase.add(ram2);
 
-    // Storage (SSD)
-    const storageGeometry = new THREE.BoxGeometry(0.4, 0.1, 0.25);
+    const ram2HeatspreaderGeometry = new THREE.BoxGeometry(0.12, 0.55, 0.06);
+    const ram2HeatspreaderMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
+    const ram2Heatspreader = new THREE.Mesh(ram2HeatspreaderGeometry, ram2HeatspreaderMaterial);
+    ram2Heatspreader.position.set(-0.25, 0.4, 0.43);
+    pcCase.add(ram2Heatspreader);
+
+    // Storage (M.2 SSD)
+    const storageGeometry = new THREE.BoxGeometry(0.35, 0.08, 0.22);
     const storageMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     storageModel = new THREE.Mesh(storageGeometry, storageMaterial);
     storageModel.position.set(0.8, -0.5, 0.4);
     storageModel.castShadow = true;
     pcCase.add(storageModel);
 
-    // Power Supply
-    const psuGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.3);
+    // Storage heat sink
+    const storageHeatsinkGeometry = new THREE.BoxGeometry(0.35, 0.08, 0.25);
+    const storageHeatsinkMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+    const storageHeatsink = new THREE.Mesh(storageHeatsinkGeometry, storageHeatsinkMaterial);
+    storageHeatsink.position.set(0.8, -0.5, 0.43);
+    pcCase.add(storageHeatsink);
+
+    // Power Supply with modular design
+    const psuGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.25);
     const psuMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
     const psu = new THREE.Mesh(psuGeometry, psuMaterial);
     psu.position.set(-0.7, -0.2, 0.4);
@@ -388,15 +610,26 @@
     psuFan.position.set(-0.7, -0.2, 0.55);
     pcCase.add(psuFan);
 
-    // Cables
-    const cableGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.3, 8);
+    // PSU modular connectors
+    for (let i = 0; i < 6; i++) {
+      const psuConnectorGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.03);
+      const psuConnectorMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+      const psuConnector = new THREE.Mesh(psuConnectorGeometry, psuConnectorMaterial);
+      psuConnector.position.set(-0.7, -0.2 + (i - 2.5) * 0.1, 0.55);
+      pcCase.add(psuConnector);
+    }
+
+    // Modular cables
+    const cableGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.3, 8);
     const cableMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
     
-    // GPU power cable
-    const gpuCable = new THREE.Mesh(cableGeometry, cableMaterial);
-    gpuCable.position.set(0.3, -0.3, 0.25);
-    gpuCable.rotation.x = Math.PI / 2;
-    pcCase.add(gpuCable);
+    // GPU power cables
+    for (let i = 0; i < 2; i++) {
+      const gpuCable = new THREE.Mesh(cableGeometry, cableMaterial);
+      gpuCable.position.set(0.3 + (i - 0.5) * 0.1, -0.3, 0.25);
+      gpuCable.rotation.x = Math.PI / 2;
+      pcCase.add(gpuCable);
+    }
 
     // CPU power cable
     const cpuCable = new THREE.Mesh(cableGeometry, cableMaterial);
@@ -404,7 +637,13 @@
     cpuCable.rotation.x = Math.PI / 2;
     pcCase.add(cpuCable);
 
-    // Case fans
+    // Motherboard power cable
+    const moboCable = new THREE.Mesh(cableGeometry, cableMaterial);
+    moboCable.position.set(-0.2, 0.3, 0.25);
+    moboCable.rotation.x = Math.PI / 2;
+    pcCase.add(moboCable);
+
+    // Case fans with RGB rings
     for (let i = 0; i < 3; i++) {
       const fanGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8);
       const fanMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
@@ -416,6 +655,23 @@
         0.4
       );
       pcCase.add(fan);
+
+      // RGB ring around fan
+      const rgbRingGeometry = new THREE.RingGeometry(0.08, 0.1, 8);
+      const rgbRingMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x00ff00,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.7
+      });
+      const rgbRing = new THREE.Mesh(rgbRingGeometry, rgbRingMaterial);
+      rgbRing.rotation.z = Math.PI / 2;
+      rgbRing.position.set(
+        (i - 1) * 0.3,
+        0.55,
+        0.4
+      );
+      pcCase.add(rgbRing);
     }
   }
 
