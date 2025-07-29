@@ -728,47 +728,7 @@
     cursor: pointer;
   }
 
-  .action-btn:hover {
-    background: #218838;
-  }
 
-  .clear-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .clear-btn:hover {
-    background: #c82333;
-  }
-
-  .messages {
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  .message {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    background: white;
-    border: 1px solid #e2e2e2;
-    border-radius: 4px;
-  }
-
-  .message-number {
-    color: #6c757d;
-    font-weight: bold;
-    min-width: 2rem;
-  }
-
-  .message-text {
-    flex: 1;
-  }
 
   h1 {
     color: #333;
