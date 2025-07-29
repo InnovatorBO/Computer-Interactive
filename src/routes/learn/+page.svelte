@@ -2,7 +2,6 @@
   let activePopup: string | null = null;
 
   function showPopup(popupId: string): void {
-    // Close any currently open popup
     if (activePopup) {
       closePopup();
     }
@@ -62,7 +61,6 @@
   <button class="help-button" on:click={() => showPopup('help')}>?</button>
 </div>
 
-<!-- CPU Popup -->
 {#if activePopup === 'cpu'}
   <div class="popup" on:click={handleBackdropClick}>
     <div class="popup-content">
@@ -73,7 +71,6 @@
   </div>
 {/if}
 
-<!-- RAM Popup -->
 {#if activePopup === 'ram'}
   <div class="popup" on:click={handleBackdropClick}>
     <div class="popup-content">
@@ -84,7 +81,6 @@
   </div>
 {/if}
 
-<!-- GPU Popup -->
 {#if activePopup === 'gpu'}
   <div class="popup" on:click={handleBackdropClick}>
     <div class="popup-content">
@@ -95,7 +91,6 @@
   </div>
 {/if}
 
-<!-- Storage Popup -->
 {#if activePopup === 'storage'}
   <div class="popup" on:click={handleBackdropClick}>
     <div class="popup-content">
@@ -106,7 +101,6 @@
   </div>
 {/if}
 
-<!-- Help Popup -->
 {#if activePopup === 'help'}
   <div class="popup" on:click={handleBackdropClick}>
     <div class="popup-content">
