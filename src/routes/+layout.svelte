@@ -11,7 +11,7 @@
   </div>
 </nav>
 
-<main>
+<main class="main-content">
   <slot />
 </main>
 
@@ -46,9 +46,8 @@
     color: white;
   }
 
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+  .main-content {
+    /* Remove padding and max-width constraints */
+    /* Let individual pages control their own layout */
   }
 </style>
