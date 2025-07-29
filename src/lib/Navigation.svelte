@@ -26,6 +26,11 @@
           Interactive
         </a>
       </li>
+      <li>
+        <a href="/game_page" class:active={currentPath === '/game_page'}>
+          Game
+        </a>
+      </li>
     </ul>
   </div>
 </nav>
