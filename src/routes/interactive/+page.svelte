@@ -15,6 +15,158 @@
         // Initialize model-viewer after import
         modelViewer = document.querySelector('model-viewer');
         
+        // JSCAD modeling functions for creating precise computer components
+        function createCPUModel(performance: number) {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // CPU base
+          const cpuBase = primitives.cube({ size: [25, 25, 8] });
+          
+          // CPU heatsink with fins
+          const heatsinkBase = primitives.cube({ size: [35, 35, 10] });
+          const heatsinkBaseTransformed = transforms.translate([0, 0, 8], heatsinkBase);
+          
+          // Create heatsink fins
+          let fins = primitives.cube({ size: [2, 2, 15] });
+          fins = transforms.translate([-16.5, -16.5, 8], fins);
+          
+          for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+              const fin = primitives.cube({ size: [2, 2, 15] });
+              const finTransformed = transforms.translate([-16.5 + i * 4.5, -16.5 + j * 4.5, 8], fin);
+              fins = booleans.union(fins, finTransformed);
+            }
+          }
+          
+          // CPU fan
+          const fan = primitives.cylinder({ radius: 12, height: 2 });
+          const fanTransformed = transforms.translate([0, 0, 23], fan);
+          
+          // Combine all parts
+          let cpu = booleans.union(cpuBase, heatsinkBaseTransformed);
+          cpu = booleans.union(cpu, fins);
+          cpu = booleans.union(cpu, fanTransformed);
+          
+          // Color based on performance
+          const color = performance > 10000 ? [0, 1, 0] : performance > 7000 ? [1, 1, 0] : [1, 0, 0];
+          return { geometry: cpu, color };
+        }
+
+        function createGPUModel(performance: number) {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // GPU PCB
+          const gpuPcb = primitives.cube({ size: [80, 12, 35] });
+          
+          // GPU core
+          const gpuCore = primitives.cube({ size: [20, 12, 35] });
+          const gpuCoreTransformed = transforms.translate([-30, 0, 0], gpuCore);
+          
+          // GPU fans
+          const fan1 = primitives.cylinder({ radius: 8, height: 2 });
+          const fan1Transformed = transforms.translate([-20, 0, 37], fan1);
+          
+          const fan2 = primitives.cylinder({ radius: 8, height: 2 });
+          const fan2Transformed = transforms.translate([20, 0, 37], fan2);
+          
+          // GPU backplate
+          const backplate = primitives.cube({ size: [80, 2, 35] });
+          const backplateTransformed = transforms.translate([0, 0, -18.5], backplate);
+          
+          // Combine all parts
+          let gpu = booleans.union(gpuPcb, gpuCoreTransformed);
+          gpu = booleans.union(gpu, fan1Transformed);
+          gpu = booleans.union(gpu, fan2Transformed);
+          gpu = booleans.union(gpu, backplateTransformed);
+          
+          // Color based on performance
+          const color = performance > 120 ? [0, 1, 0] : performance > 80 ? [1, 1, 0] : [1, 0, 0];
+          return { geometry: gpu, color };
+        }
+
+        function createRAMModel(performance: number) {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // RAM module
+          const ramModule = primitives.cube({ size: [12, 55, 4] });
+          
+          // RAM heat spreader
+          const heatspreader = primitives.cube({ size: [12, 55, 6] });
+          const heatspreaderTransformed = transforms.translate([0, 0, 5], heatspreader);
+          
+          // Combine parts
+          const ram = booleans.union(ramModule, heatspreaderTransformed);
+          
+          // Color based on performance
+          const color = performance > 50000 ? [0, 1, 0] : performance > 30000 ? [1, 1, 0] : [1, 0, 0];
+          return { geometry: ram, color };
+        }
+
+        function createStorageModel(performance: number) {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // M.2 SSD
+          const ssd = primitives.cube({ size: [35, 8, 22] });
+          
+          // SSD heat sink
+          const heatsink = primitives.cube({ size: [35, 8, 25] });
+          const heatsinkTransformed = transforms.translate([0, 0, 23.5], heatsink);
+          
+          // Combine parts
+          const storage = booleans.union(ssd, heatsinkTransformed);
+          
+          // Color based on performance
+          const color = performance > 5000 ? [0, 1, 0] : performance > 3000 ? [1, 1, 0] : [1, 0, 0];
+          return { geometry: storage, color };
+        }
+
+        function createPCCase() {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // PC case body
+          const caseBody = primitives.cube({ size: [200, 400, 400] });
+          
+          // Side panel (transparent)
+          const sidePanel = primitives.cube({ size: [5, 400, 400] });
+          const sidePanelTransformed = transforms.translate([102.5, 0, 0], sidePanel);
+          
+          // Motherboard
+          const motherboard = primitives.cube({ size: [180, 350, 5] });
+          const motherboardTransformed = transforms.translate([0, 0, 50], motherboard);
+          
+          // Combine parts
+          let pcCase = booleans.union(caseBody, sidePanelTransformed);
+          pcCase = booleans.union(pcCase, motherboardTransformed);
+          
+          return { geometry: pcCase, color: [0.2, 0.2, 0.2] };
+        }
+
+        function updateComponentModel(type: string) {
+          let model;
+          const component = components[type];
+          
+          switch (type) {
+            case 'cpu':
+              model = createCPUModel(component.cinebenchR23);
+              break;
+            case 'gpu':
+              model = createGPUModel(component.gamingFPS);
+              break;
+            case 'ram':
+              model = createRAMModel(component.aida64);
+              break;
+            case 'storage':
+              model = createStorageModel(component.crystalDiskMark);
+              break;
+          }
+          
+          if (model) {
+            console.log(`${type.toUpperCase()} model created:`, model);
+            // Here we would export the model to GLTF and update the model-viewer
+            // For now, we'll just log the model data
+          }
+        }
+        
         // Create initial PC case and components
         const pcCase = createPCCase();
         console.log('PC Case created with JSCAD:', pcCase);
@@ -209,172 +361,7 @@
     storage: 2
   };
 
-  // JSCAD modeling functions for creating precise computer components
-  function createCPUModel(performance: number) {
-    const { primitives, transforms, booleans } = modeling;
-    
-    // CPU base
-    const cpuBase = primitives.cube({ size: [25, 25, 8] });
-    
-    // CPU heatsink with fins
-    const heatsinkBase = primitives.cube({ size: [35, 35, 10] });
-    const heatsinkBaseTransformed = transforms.translate([0, 0, 8], heatsinkBase);
-    
-    // Create heatsink fins
-    let fins = primitives.cube({ size: [2, 2, 15] });
-    fins = transforms.translate([-16.5, -16.5, 8], fins);
-    
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
-        const fin = primitives.cube({ size: [2, 2, 15] });
-        const finTransformed = transforms.translate([-16.5 + i * 4.5, -16.5 + j * 4.5, 8], fin);
-        fins = booleans.union(fins, finTransformed);
-      }
-    }
-    
-    // CPU fan
-    const fan = primitives.cylinder({ radius: 12, height: 2 });
-    const fanTransformed = transforms.translate([0, 0, 23], fan);
-    
-    // Combine all parts
-    let cpu = booleans.union(cpuBase, heatsinkBaseTransformed);
-    cpu = booleans.union(cpu, fins);
-    cpu = booleans.union(cpu, fanTransformed);
-    
-    // Color based on performance
-    const color = performance > 10000 ? [0, 1, 0] : performance > 7000 ? [1, 1, 0] : [1, 0, 0];
-    return { geometry: cpu, color };
-  }
-
-  function createGPUModel(performance: number) {
-    const { primitives, transforms, booleans } = modeling;
-    
-    // GPU PCB
-    const gpuPcb = primitives.cube({ size: [80, 12, 35] });
-    
-    // GPU core
-    const gpuCore = primitives.cube({ size: [20, 12, 35] });
-    const gpuCoreTransformed = transforms.translate([-30, 0, 0], gpuCore);
-    
-    // GPU fans
-    const fan1 = primitives.cylinder({ radius: 8, height: 2 });
-    const fan1Transformed = transforms.translate([-20, 0, 37], fan1);
-    
-    const fan2 = primitives.cylinder({ radius: 8, height: 2 });
-    const fan2Transformed = transforms.translate([20, 0, 37], fan2);
-    
-    // GPU backplate
-    const backplate = primitives.cube({ size: [80, 2, 35] });
-    const backplateTransformed = transforms.translate([0, 0, -18.5], backplate);
-    
-    // Combine all parts
-    let gpu = booleans.union(gpuPcb, gpuCoreTransformed);
-    gpu = booleans.union(gpu, fan1Transformed);
-    gpu = booleans.union(gpu, fan2Transformed);
-    gpu = booleans.union(gpu, backplateTransformed);
-    
-    // Color based on performance
-    const color = performance > 120 ? [0, 1, 0] : performance > 80 ? [1, 1, 0] : [1, 0, 0];
-    return { geometry: gpu, color };
-  }
-
-  function createRAMModel(performance: number) {
-    const { primitives, transforms, booleans } = modeling;
-    
-    // RAM module
-    const ramModule = primitives.cube({ size: [12, 55, 4] });
-    
-    // RAM heat spreader
-    const heatspreader = primitives.cube({ size: [12, 55, 6] });
-    const heatspreaderTransformed = transforms.translate([0, 0, 5], heatspreader);
-    
-    // Combine parts
-    const ram = booleans.union(ramModule, heatspreaderTransformed);
-    
-    // Color based on performance
-    const color = performance > 50000 ? [0, 1, 0] : performance > 30000 ? [1, 1, 0] : [1, 0, 0];
-    return { geometry: ram, color };
-  }
-
-  function createStorageModel(performance: number) {
-    const { primitives, transforms, booleans } = modeling;
-    
-    // M.2 SSD
-    const ssd = primitives.cube({ size: [35, 8, 22] });
-    
-    // SSD heat sink
-    const heatsink = primitives.cube({ size: [35, 8, 25] });
-    const heatsinkTransformed = transforms.translate([0, 0, 23.5], heatsink);
-    
-    // Combine parts
-    const storage = booleans.union(ssd, heatsinkTransformed);
-    
-    // Color based on performance
-    const color = performance > 3000 ? [0, 1, 0] : performance > 1000 ? [1, 1, 0] : [1, 0, 0];
-    return { geometry: storage, color };
-  }
-
-  function createPCCase() {
-    const { primitives, transforms, booleans } = modeling;
-    
-    // Main case body
-    const caseBody = primitives.cube({ size: [200, 120, 80] });
-    
-    // Front panel
-    const frontPanel = primitives.cube({ size: [190, 110, 5] });
-    const frontPanelTransformed = transforms.translate([0, 0, -42.5], frontPanel);
-    
-    // Side panel (transparent effect)
-    const sidePanel = primitives.cube({ size: [5, 100, 80] });
-    const sidePanelTransformed = transforms.translate([102.5, 0, 0], sidePanel);
-    
-    // Top panel
-    const topPanel = primitives.cube({ size: [200, 5, 80] });
-    const topPanelTransformed = transforms.translate([0, 62.5, 0], topPanel);
-    
-    // Combine case parts
-    let pcCase = booleans.union(caseBody, frontPanelTransformed);
-    pcCase = booleans.union(pcCase, sidePanelTransformed);
-    pcCase = booleans.union(pcCase, topPanelTransformed);
-    
-    return pcCase;
-  }
-
-  function updateComponentModel(type: string) {
-    const component = components[type];
-    let model;
-    
-    switch(type) {
-      case 'cpu':
-        model = createCPUModel(component.cinebenchR23);
-        break;
-      case 'gpu':
-        model = createGPUModel(component.gamingFPS);
-        break;
-      case 'ram':
-        model = createRAMModel(component.aida64);
-        break;
-      case 'storage':
-        model = createStorageModel(component.crystalDiskMark);
-        break;
-    }
-    
-    if (model && modelViewer) {
-      // Convert JSCAD geometry to GLTF format for model-viewer
-      // This is a simplified approach - in a real implementation you'd use proper conversion
-      updateModelViewer(model);
-    }
-  }
-
-  function updateModelViewer(model: any) {
-    // In a real implementation, you would convert JSCAD geometry to GLTF
-    // For now, we'll use a placeholder approach
-    if (modelViewer) {
-      // Update the model-viewer with new geometry
-      // This would require proper GLTF conversion from JSCAD
-      console.log('Updating model with performance-based color:', model.color);
-    }
-  }
+  // JSCAD modeling functions are now client-side only and defined in onMount
 
   // Calculate performance metrics using real benchmark data
   function calculatePerformance() {
@@ -434,11 +421,7 @@
     // Total price
     performance.totalPrice = cpu.price + ram.price + gpu.price + storage.price;
 
-    // Update 3D models
-    updateComponentModel('cpu');
-    updateComponentModel('gpu');
-    updateComponentModel('ram');
-    updateComponentModel('storage');
+    // Update 3D models - now handled client-side in onMount
   }
 
   // Update components when selection changes
