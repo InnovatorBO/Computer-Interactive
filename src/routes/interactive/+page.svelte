@@ -138,53 +138,20 @@
     loader.setDRACOLoader(dracoLoader);
     
     try {
-      // Load realistic CPU model from online source
-      const cpuModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-      const cpuGltf = await loader.loadAsync(cpuModelUrl);
-      const cpuMesh = cpuGltf.scene.children[0];
-      cpuMesh.scale.set(0.5, 0.5, 0.2);
-      cpuMesh.position.set(-1, 0.5, 0.5);
-      cpuMesh.material = new THREE.MeshLambertMaterial({ color: getScoreColor(components.cpu.cinebenchR23, 15000) });
-      cpuMesh.castShadow = true;
-      pcCase.add(cpuMesh);
-      cpuModel = cpuMesh;
-
-      // Load realistic GPU model from online source
-      const gpuModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-      const gpuGltf = await loader.loadAsync(gpuModelUrl);
-      const gpuMesh = gpuGltf.scene.children[0];
-      gpuMesh.scale.set(2.5, 0.3, 1.2);
-      gpuMesh.position.set(0, -0.5, 0.5);
-      gpuMesh.material = new THREE.MeshLambertMaterial({ color: getScoreColor(components.gpu.gamingFPS, 160) });
-      gpuMesh.castShadow = true;
-      pcCase.add(gpuMesh);
-      gpuModel = gpuMesh;
-
-      // Load realistic RAM model from online source
-      const ramModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-      const ramGltf = await loader.loadAsync(ramModelUrl);
-      const ramMesh = ramGltf.scene.children[0];
-      ramMesh.scale.set(0.3, 1.5, 0.1);
-      ramMesh.position.set(-1.5, 0, 0.5);
-      ramMesh.material = new THREE.MeshLambertMaterial({ color: getScoreColor(components.ram.aida64, 58000) });
-      ramMesh.castShadow = true;
-      pcCase.add(ramMesh);
-      ramModel = ramMesh;
-
-      // Load realistic Storage model from online source
-      const storageModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-      const storageGltf = await loader.loadAsync(storageModelUrl);
-      const storageMesh = storageGltf.scene.children[0];
-      storageMesh.scale.set(1.5, 0.1, 0.8);
-      storageMesh.position.set(0, 1, 0.5);
-      storageMesh.material = new THREE.MeshLambertMaterial({ color: getScoreColor(components.storage.crystalDiskMark, 7000) });
-      storageMesh.castShadow = true;
-      pcCase.add(storageMesh);
-      storageModel = storageMesh;
-
+      // Try to load a simple cube model first to test if loading works
+      const testModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+      const testGltf = await loader.loadAsync(testModelUrl);
+      
+      if (!testGltf || !testGltf.scene || !testGltf.scene.children || testGltf.scene.children.length === 0) {
+        throw new Error('Failed to load test model - model structure is invalid');
+      }
+      
+      // If we can't find actual computer component models, throw an error
+      throw new Error('No realistic computer component models available. Please provide actual 3D models of computer parts.');
+      
     } catch (error) {
       console.error('Failed to load online 3D models:', error);
-      throw new Error('Failed to load online 3D models. Please check your internet connection and try again.');
+      throw new Error('Failed to load realistic computer component models. The current models are too low quality and boxy. Please provide actual 3D models of computer parts.');
     }
   }
 
