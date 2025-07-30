@@ -166,10 +166,64 @@
             // For now, we'll just log the model data
           }
         }
+
+        // Create a simple PC case model for display
+        function createSimplePCModel() {
+          const { primitives, transforms, booleans } = modeling;
+          
+          // Create a simple PC case
+          const caseBody = primitives.cube({ size: [150, 100, 80] });
+          
+          // Add some details
+          const frontPanel = primitives.cube({ size: [140, 90, 5] });
+          const frontPanelTransformed = transforms.translate([0, 0, -42.5], frontPanel);
+          
+          const sidePanel = primitives.cube({ size: [5, 100, 80] });
+          const sidePanelTransformed = transforms.translate([77.5, 0, 0], sidePanel);
+          
+          // Combine parts
+          let pcModel = booleans.union(caseBody, frontPanelTransformed);
+          pcModel = booleans.union(pcModel, sidePanelTransformed);
+          
+          return pcModel;
+        }
+
+        // Generate and export the PC model
+        async function generatePCModel() {
+          try {
+            const { io } = modeling;
+            const pcModel = createSimplePCModel();
+            
+            // Convert to STL format (model-viewer can handle this)
+            const stlData = io.stl.serialize(pcModel);
+            
+            // Create a blob URL for the model
+            const blob = new Blob([stlData], { type: 'application/octet-stream' });
+            const modelUrl = URL.createObjectURL(blob);
+            
+            // Update the model-viewer with our custom model
+            if (modelViewer) {
+              modelViewer.src = modelUrl;
+              console.log('PC model loaded successfully');
+            }
+          } catch (error) {
+            console.error('Failed to generate PC model:', error);
+            // Fallback to a simple cube model
+            const { primitives, io } = modeling;
+            const simpleCube = primitives.cube({ size: [100, 100, 100] });
+            const stlData = io.stl.serialize(simpleCube);
+            const blob = new Blob([stlData], { type: 'application/octet-stream' });
+            const modelUrl = URL.createObjectURL(blob);
+            
+            if (modelViewer) {
+              modelViewer.src = modelUrl;
+              console.log('Fallback cube model loaded');
+            }
+          }
+        }
         
-        // Create initial PC case and components
-        const pcCase = createPCCase();
-        console.log('PC Case created with JSCAD:', pcCase);
+        // Generate the PC model
+        await generatePCModel();
         
         // Create initial component models
         updateComponentModel('cpu');
@@ -494,7 +548,7 @@
     <div class="model-container">
       {#if isBrowser}
         <model-viewer 
-          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          src=""
           alt="Computer Hardware Components"
           camera-controls
           auto-rotate
@@ -508,7 +562,6 @@
           max-camera-orbit="auto auto 3m"
           field-of-view="30deg"
           style="width: 100%; height: 400px;"
-          poster="/models/pc-case-poster.jpg"
         >
           <div class="model-overlay">
             <div class="performance-indicator cpu-indicator">
