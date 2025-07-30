@@ -1,385 +1,211 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import * as modeling from '@jscad/modeling';
+  import * as THREE from 'three';
   
   let title = 'Computer Performance Simulator';
-  let modelViewer: any;
+  let canvasContainer: HTMLDivElement;
+  let scene: THREE.Scene;
+  let camera: THREE.PerspectiveCamera;
+  let renderer: THREE.WebGLRenderer;
+  let controls: any;
+  let pcCase: THREE.Group;
+  let cpuModel: THREE.Mesh;
+  let gpuModel: THREE.Mesh;
+  let ramModel: THREE.Mesh;
+  let storageModel: THREE.Mesh;
   let isBrowser = browser;
   
-  // Import model-viewer only on the client side
-  onMount(async () => {
-    if (typeof window !== 'undefined') {
-      try {
-        await import('@google/model-viewer');
-        // Initialize model-viewer after import
-        modelViewer = document.querySelector('model-viewer');
-        
-        // JSCAD modeling functions for creating precise computer components
-        function createCPUModel(performance: number) {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // CPU base
-          const cpuBase = primitives.cube({ size: 25 });
-          
-          // CPU heatsink with fins
-          const heatsinkBase = primitives.cube({ size: 35 });
-          const heatsinkBaseTransformed = transforms.translate([0, 0, 8], heatsinkBase);
-          
-          // Create heatsink fins
-          let fins = primitives.cube({ size: 2 });
-          fins = transforms.translate([-16.5, -16.5, 8], fins);
-          
-          for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 8; j++) {
-              const fin = primitives.cube({ size: 2 });
-              const finTransformed = transforms.translate([-16.5 + i * 4.5, -16.5 + j * 4.5, 8], fin);
-              fins = booleans.union(fins, finTransformed);
-            }
-          }
-          
-          // CPU fan
-          const fan = primitives.cylinder({ radius: 12, height: 2 });
-          const fanTransformed = transforms.translate([0, 0, 23], fan);
-          
-          // Combine all parts
-          let cpu = booleans.union(cpuBase, heatsinkBaseTransformed);
-          cpu = booleans.union(cpu, fins);
-          cpu = booleans.union(cpu, fanTransformed);
-          
-          // Color based on performance
-          const color = performance > 10000 ? [0, 1, 0] : performance > 7000 ? [1, 1, 0] : [1, 0, 0];
-          return { geometry: cpu, color };
-        }
-
-        function createGPUModel(performance: number) {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // GPU PCB
-          const gpuPcb = primitives.cube({ size: 80 });
-          
-          // GPU core
-          const gpuCore = primitives.cube({ size: 20 });
-          const gpuCoreTransformed = transforms.translate([-30, 0, 0], gpuCore);
-          
-          // GPU fans
-          const fan1 = primitives.cylinder({ radius: 8, height: 2 });
-          const fan1Transformed = transforms.translate([-20, 0, 37], fan1);
-          
-          const fan2 = primitives.cylinder({ radius: 8, height: 2 });
-          const fan2Transformed = transforms.translate([20, 0, 37], fan2);
-          
-          // GPU backplate
-          const backplate = primitives.cube({ size: 80 });
-          const backplateTransformed = transforms.translate([0, 0, -18.5], backplate);
-          
-          // Combine all parts
-          let gpu = booleans.union(gpuPcb, gpuCoreTransformed);
-          gpu = booleans.union(gpu, fan1Transformed);
-          gpu = booleans.union(gpu, fan2Transformed);
-          gpu = booleans.union(gpu, backplateTransformed);
-          
-          // Color based on performance
-          const color = performance > 120 ? [0, 1, 0] : performance > 80 ? [1, 1, 0] : [1, 0, 0];
-          return { geometry: gpu, color };
-        }
-
-        function createRAMModel(performance: number) {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // RAM module
-          const ramModule = primitives.cube({ size: 12 });
-          
-          // RAM heat spreader
-          const heatspreader = primitives.cube({ size: 12 });
-          const heatspreaderTransformed = transforms.translate([0, 0, 5], heatspreader);
-          
-          // Combine parts
-          const ram = booleans.union(ramModule, heatspreaderTransformed);
-          
-          // Color based on performance
-          const color = performance > 50000 ? [0, 1, 0] : performance > 30000 ? [1, 1, 0] : [1, 0, 0];
-          return { geometry: ram, color };
-        }
-
-        function createStorageModel(performance: number) {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // M.2 SSD
-          const ssd = primitives.cube({ size: 35 });
-          
-          // SSD heat sink
-          const heatsink = primitives.cube({ size: 35 });
-          const heatsinkTransformed = transforms.translate([0, 0, 23.5], heatsink);
-          
-          // Combine parts
-          const storage = booleans.union(ssd, heatsinkTransformed);
-          
-          // Color based on performance
-          const color = performance > 5000 ? [0, 1, 0] : performance > 3000 ? [1, 1, 0] : [1, 0, 0];
-          return { geometry: storage, color };
-        }
-
-        function createPCCase() {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // PC case body
-          const caseBody = primitives.cube({ size: [200, 400, 400] });
-          
-          // Side panel (transparent)
-          const sidePanel = primitives.cube({ size: [5, 400, 400] });
-          const sidePanelTransformed = transforms.translate([102.5, 0, 0], sidePanel);
-          
-          // Motherboard
-          const motherboard = primitives.cube({ size: [180, 350, 5] });
-          const motherboardTransformed = transforms.translate([0, 0, 50], motherboard);
-          
-          // Combine parts
-          let pcCase = booleans.union(caseBody, sidePanelTransformed);
-          pcCase = booleans.union(pcCase, motherboardTransformed);
-          
-          return { geometry: pcCase, color: [0.2, 0.2, 0.2] };
-        }
-
-        function updateComponentModel(type: string) {
-          let model;
-          const component = components[type];
-          
-          switch (type) {
-            case 'cpu':
-              model = createCPUModel(component.cinebenchR23);
-              break;
-            case 'gpu':
-              model = createGPUModel(component.gamingFPS);
-              break;
-            case 'ram':
-              model = createRAMModel(component.aida64);
-              break;
-            case 'storage':
-              model = createStorageModel(component.crystalDiskMark);
-              break;
-          }
-          
-          if (model) {
-            console.log(`${type.toUpperCase()} model created:`, model);
-            // Here we would export the model to GLTF and update the model-viewer
-            // For now, we'll just log the model data
-          }
-        }
-
-        // Generate and export the PC model
-        async function generatePCModel() {
-          try {
-            console.log('Starting PC model generation...');
-            
-            // For now, let's use a simple approach - create a basic 3D model
-            // that model-viewer can definitely handle
-            const { primitives, transforms, booleans } = modeling;
-            
-            // Create a simple PC case as a cube with valid positive dimensions
-            const pcCase = primitives.cube({ size: 100 });
-            
-            // Add some details to make it look more like a PC
-            const frontPanel = primitives.cube({ size: 90 });
-            const frontPanelTransformed = transforms.translate([0, 0, -50], frontPanel);
-            
-            const sidePanel = primitives.cube({ size: 80 });
-            const sidePanelTransformed = transforms.translate([50, 0, 0], sidePanel);
-            
-            // Combine all parts
-            let pcModel = booleans.union(pcCase, frontPanelTransformed);
-            pcModel = booleans.union(pcModel, sidePanelTransformed);
-            
-            console.log('PC model geometry created:', pcModel);
-            
-            // Since STL export is not working, let's create a simple PC case model
-            // For now, we'll use a simple approach - create a basic cube model
-            // that represents a PC case
-            const gltfUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-            
-            console.log('GLTF URL created:', gltfUrl);
-            
-            // Update the model-viewer with our custom model
-            if (modelViewer) {
-              modelViewer.src = gltfUrl;
-              console.log('PC model loaded successfully into model-viewer');
-              
-              // Add event listeners to track loading
-              modelViewer.addEventListener('load', () => {
-                console.log('Model loaded successfully');
-              });
-              
-              modelViewer.addEventListener('error', (error) => {
-                console.error('Model loading error:', error);
-              });
-            } else {
-              console.error('Model viewer element not found');
-            }
-          } catch (error) {
-            console.error('Failed to generate PC model:', error);
-            
-            // Fallback: Use a simple cube model
-            try {
-              console.log('Trying fallback cube model...');
-              
-              // Create a simple cube using a basic GLTF structure
-              const simpleGltf = {
-                "asset": { "version": "2.0" },
-                "scene": 0,
-                "scenes": [{ "nodes": [0] }],
-                "nodes": [{ "mesh": 0 }],
-                "meshes": [{
-                  "primitives": [{
-                    "attributes": {
-                      "POSITION": 0
-                    },
-                    "indices": 1
-                  }]
-                }],
-                "accessors": [
-                  {
-                    "bufferView": 0,
-                    "componentType": 5126,
-                    "count": 24,
-                    "type": "VEC3",
-                    "max": [0.5, 0.5, 0.5],
-                    "min": [-0.5, -0.5, -0.5]
-                  },
-                  {
-                    "bufferView": 1,
-                    "componentType": 5123,
-                    "count": 36,
-                    "type": "SCALAR"
-                  }
-                ],
-                "bufferViews": [
-                  {
-                    "buffer": 0,
-                    "byteLength": 288,
-                    "byteOffset": 0
-                  },
-                  {
-                    "buffer": 0,
-                    "byteLength": 72,
-                    "byteOffset": 288
-                  }
-                ],
-                "buffers": [{
-                  "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
-                }]
-              };
-              
-              const simpleBlob = new Blob([JSON.stringify(simpleGltf)], { type: 'model/gltf+json' });
-              const simpleUrl = URL.createObjectURL(simpleBlob);
-              
-              if (modelViewer) {
-                modelViewer.src = simpleUrl;
-                console.log('Fallback cube model loaded');
-              }
-            } catch (fallbackError) {
-              console.error('Even fallback model failed:', fallbackError);
-              
-              // Last resort: Use a simple placeholder image
-              if (modelViewer) {
-                // Use a simple placeholder image instead of invalid data
-                modelViewer.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBDIENhc2U8L3RleHQ+PC9zdmc+';
-                console.log('Using placeholder image as final fallback');
-              }
-            }
-          }
-        }
-        
-        // Alternative: Use a simple GLTF model that model-viewer definitely supports
-        async function loadSimplePCModel() {
-          try {
-            console.log('Loading simple PC model...');
-            
-            // Create a simple GLTF-like structure for a cube
-            const gltfData = {
-              "asset": { "version": "2.0" },
-              "scene": 0,
-              "scenes": [{ "nodes": [0] }],
-              "nodes": [{ "mesh": 0 }],
-              "meshes": [{
-                "primitives": [{
-                  "attributes": {
-                    "POSITION": 0
-                  },
-                  "indices": 1
-                }]
-              }],
-              "accessors": [
-                {
-                  "bufferView": 0,
-                  "componentType": 5126,
-                  "count": 24,
-                  "type": "VEC3",
-                  "max": [1, 1, 1],
-                  "min": [-1, -1, -1]
-                },
-                {
-                  "bufferView": 1,
-                  "componentType": 5123,
-                  "count": 36,
-                  "type": "SCALAR"
-                }
-              ],
-              "bufferViews": [
-                {
-                  "buffer": 0,
-                  "byteLength": 288,
-                  "byteOffset": 0
-                },
-                {
-                  "buffer": 0,
-                  "byteLength": 72,
-                  "byteOffset": 288
-                }
-              ],
-              "buffers": [{
-                "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
-              }]
-            };
-            
-            const gltfBlob = new Blob([JSON.stringify(gltfData)], { type: 'model/gltf+json' });
-            const gltfUrl = URL.createObjectURL(gltfBlob);
-            
-            if (modelViewer) {
-              modelViewer.src = gltfUrl;
-              console.log('Simple GLTF model loaded');
-            }
-          } catch (error) {
-            console.error('Failed to load simple GLTF model:', error);
-            
-            // Final fallback: Use a placeholder image
-            if (modelViewer) {
-              modelViewer.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBDIENhc2U8L3RleHQ+PC9zdmc+';
-              console.log('Using placeholder image as final fallback');
-            }
-          }
-        }
-        
-        // Generate the PC model - try the simple approach first
-        try {
-          await generatePCModel();
-        } catch (error) {
-          console.error('Primary model generation failed, trying simple approach:', error);
-          await loadSimplePCModel();
-        }
-        
-        // Initialize performance calculation
-        calculatePerformance();
-        
-        // Create initial component models
-        updateComponentModel('cpu');
-        updateComponentModel('gpu');
-        updateComponentModel('ram');
-        updateComponentModel('storage');
-      } catch (error) {
-        console.error('Failed to load model-viewer:', error);
-      }
+  // Initialize Three.js 3D scene
+  onMount(() => {
+    if (typeof window !== 'undefined' && canvasContainer) {
+      initThreeJS();
+      calculatePerformance();
     }
   });
+
+  function initThreeJS() {
+    // Scene setup
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a1a);
+
+    // Camera setup
+    camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+    camera.position.set(0, 0, 5);
+
+    // Renderer setup
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    canvasContainer.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
+
+    // Create PC case
+    createPCCase();
+    createComponents();
+
+    // Animation loop
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', onWindowResize);
+  }
+
+  function createPCCase() {
+    pcCase = new THREE.Group();
+
+    // Main case body
+    const caseGeometry = new THREE.BoxGeometry(4, 3, 2);
+    const caseMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+    const caseMesh = new THREE.Mesh(caseGeometry, caseMaterial);
+    caseMesh.castShadow = true;
+    caseMesh.receiveShadow = true;
+    pcCase.add(caseMesh);
+
+    // Side panel (transparent)
+    const sideGeometry = new THREE.PlaneGeometry(2, 3);
+    const sideMaterial = new THREE.MeshLambertMaterial({ 
+      color: 0x34495e, 
+      transparent: true, 
+      opacity: 0.3 
+    });
+    const sideMesh = new THREE.Mesh(sideGeometry, sideMaterial);
+    sideMesh.position.set(2.1, 0, 0);
+    pcCase.add(sideMesh);
+
+    scene.add(pcCase);
+  }
+
+  function createComponents() {
+    // CPU with heatsink
+    const cpuGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.2);
+    const cpuMaterial = new THREE.MeshLambertMaterial({ color: getScoreColor(components.cpu.cinebenchR23, 15000) });
+    cpuModel = new THREE.Mesh(cpuGeometry, cpuMaterial);
+    cpuModel.position.set(-1, 0.5, 0.5);
+    cpuModel.castShadow = true;
+    scene.add(cpuModel);
+
+    // CPU heatsink
+    const heatsinkGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.8);
+    const heatsinkMaterial = new THREE.MeshLambertMaterial({ color: 0x7f8c8d });
+    const heatsink = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
+    heatsink.position.set(-1, 0.5, 1.2);
+    heatsink.castShadow = true;
+    scene.add(heatsink);
+
+    // GPU
+    const gpuGeometry = new THREE.BoxGeometry(2.5, 0.3, 1.2);
+    const gpuMaterial = new THREE.MeshLambertMaterial({ color: getScoreColor(components.gpu.gamingFPS, 160) });
+    gpuModel = new THREE.Mesh(gpuGeometry, gpuMaterial);
+    gpuModel.position.set(0, -0.5, 0.5);
+    gpuModel.castShadow = true;
+    scene.add(gpuModel);
+
+    // GPU fans
+    const fanGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 8);
+    const fanMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const fan1 = new THREE.Mesh(fanGeometry, fanMaterial);
+    fan1.position.set(-0.5, -0.5, 1.3);
+    fan1.rotation.x = Math.PI / 2;
+    scene.add(fan1);
+    const fan2 = new THREE.Mesh(fanGeometry, fanMaterial);
+    fan2.position.set(0.5, -0.5, 1.3);
+    fan2.rotation.x = Math.PI / 2;
+    scene.add(fan2);
+
+    // RAM modules
+    const ramGeometry = new THREE.BoxGeometry(0.3, 1.5, 0.1);
+    const ramMaterial = new THREE.MeshLambertMaterial({ color: getScoreColor(components.ram.aida64, 58000) });
+    ramModel = new THREE.Mesh(ramGeometry, ramMaterial);
+    ramModel.position.set(-1.5, 0, 0.5);
+    ramModel.castShadow = true;
+    scene.add(ramModel);
+
+    // Second RAM module
+    const ram2 = new THREE.Mesh(ramGeometry, ramMaterial);
+    ram2.position.set(-1.5, 0.2, 0.5);
+    ram2.castShadow = true;
+    scene.add(ram2);
+
+    // Storage (M.2 SSD)
+    const storageGeometry = new THREE.BoxGeometry(1.5, 0.1, 0.8);
+    const storageMaterial = new THREE.MeshLambertMaterial({ color: getScoreColor(components.storage.crystalDiskMark, 7000) });
+    storageModel = new THREE.Mesh(storageGeometry, storageMaterial);
+    storageModel.position.set(0, 1, 0.5);
+    storageModel.castShadow = true;
+    scene.add(storageModel);
+
+    // Motherboard
+    const motherboardGeometry = new THREE.BoxGeometry(3.5, 2.5, 0.1);
+    const motherboardMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+    const motherboard = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
+    motherboard.position.set(0, 0, 0.4);
+    motherboard.receiveShadow = true;
+    scene.add(motherboard);
+  }
+
+  function updateComponentModel(type: string) {
+    if (!scene) return;
+
+    let model: THREE.Mesh;
+    let color: string;
+
+    switch (type) {
+      case 'cpu':
+        if (cpuModel) {
+          color = getScoreColor(components.cpu.cinebenchR23, 15000);
+          (cpuModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+        }
+        break;
+      case 'gpu':
+        if (gpuModel) {
+          color = getScoreColor(components.gpu.gamingFPS, 160);
+          (gpuModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+        }
+        break;
+      case 'ram':
+        if (ramModel) {
+          color = getScoreColor(components.ram.aida64, 58000);
+          (ramModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+        }
+        break;
+      case 'storage':
+        if (storageModel) {
+          color = getScoreColor(components.storage.crystalDiskMark, 7000);
+          (storageModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+        }
+        break;
+    }
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    if (pcCase) {
+      pcCase.rotation.y += 0.01;
+    }
+
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  }
+
+  function onWindowResize() {
+    if (camera && renderer && canvasContainer) {
+      camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    }
+  }
 
   // Hardware components with their specifications and real benchmark data
   let components = {
@@ -560,8 +386,6 @@
     storage: 2
   };
 
-  // JSCAD modeling functions are now client-side only and defined in onMount
-
   // Calculate performance metrics using real benchmark data
   function calculatePerformance() {
     const cpu = componentOptions.cpu[selectedComponents.cpu];
@@ -677,22 +501,7 @@
     <h2>3D Interactive PC Model</h2>
     <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
     <div class="model-container">
-      <div class="pc-case-3d">
-        <div class="pc-case">
-          <div class="case-front"></div>
-          <div class="case-side"></div>
-          <div class="case-top"></div>
-          <div class="case-back"></div>
-          <div class="case-bottom"></div>
-          <div class="case-other-side"></div>
-          
-          <!-- PC Components -->
-          <div class="component cpu" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
-          <div class="component gpu" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
-          <div class="component ram" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
-          <div class="component storage" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
-        </div>
-        
+      <div class="three-js-container" bind:this={canvasContainer}>
         <div class="model-overlay">
           <div class="performance-indicator cpu-indicator">
             <span class="indicator-label">CPU</span>
@@ -973,112 +782,15 @@
     position: relative;
   }
 
-  .pc-case-3d {
+  .three-js-container {
     width: 100%;
     height: 100%;
     position: relative;
-    perspective: 1000px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  .pc-case {
-    width: 200px;
-    height: 300px;
-    position: relative;
-    transform-style: preserve-3d;
-    animation: rotate 20s infinite linear;
-  }
-
-  .case-front, .case-side, .case-top, .case-back, .case-bottom, .case-other-side {
-    position: absolute;
-    width: 200px;
-    height: 300px;
-    background: #2c3e50;
-    border: 2px solid #34495e;
-  }
-
-  .case-front {
-    transform: translateZ(100px);
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  }
-
-  .case-side {
-    transform: rotateY(90deg) translateZ(100px);
-    width: 200px;
-    height: 300px;
-    background: #34495e;
-  }
-
-  .case-other-side {
-    transform: rotateY(-90deg) translateZ(100px);
-    width: 200px;
-    height: 300px;
-    background: #34495e;
-  }
-
-  .case-top {
-    transform: rotateX(90deg) translateZ(150px);
-    width: 200px;
-    height: 200px;
-    background: #2c3e50;
-  }
-
-  .case-bottom {
-    transform: rotateX(-90deg) translateZ(150px);
-    width: 200px;
-    height: 200px;
-    background: #2c3e50;
-  }
-
-  .case-back {
-    transform: rotateY(180deg) translateZ(100px);
-    background: #34495e;
-  }
-
-  /* PC Components */
-  .component {
-    position: absolute;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
-  .component.cpu {
-    width: 40px;
-    height: 40px;
-    top: 50px;
-    left: 80px;
-    transform: translateZ(101px);
-  }
-
-  .component.gpu {
-    width: 80px;
-    height: 20px;
-    top: 120px;
-    left: 60px;
-    transform: translateZ(101px);
-  }
-
-  .component.ram {
-    width: 15px;
-    height: 60px;
-    top: 80px;
-    left: 30px;
-    transform: translateZ(101px);
-  }
-
-  .component.storage {
-    width: 60px;
-    height: 15px;
-    top: 200px;
-    left: 70px;
-    transform: translateZ(101px);
-  }
-
-  @keyframes rotate {
-    from { transform: rotateY(0deg); }
-    to { transform: rotateY(360deg); }
+  .three-js-container canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .model-placeholder {
