@@ -1,11 +1,35 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import * as modeling from '@jscad/modeling';
-  import '@google/model-viewer';
   
   let title = 'Computer Performance Simulator';
   let modelViewer: any;
+  let isBrowser = false;
   
+  // Import model-viewer only on the client side
+  onMount(async () => {
+    isBrowser = true;
+    if (typeof window !== 'undefined') {
+      try {
+        await import('@google/model-viewer');
+        // Initialize model-viewer after import
+        modelViewer = document.querySelector('model-viewer');
+        
+        // Create initial PC case and components
+        const pcCase = createPCCase();
+        console.log('PC Case created with JSCAD:', pcCase);
+        
+        // Create initial component models
+        updateComponentModel('cpu');
+        updateComponentModel('gpu');
+        updateComponentModel('ram');
+        updateComponentModel('storage');
+      } catch (error) {
+        console.error('Failed to load model-viewer:', error);
+      }
+    }
+  });
+
   // Hardware components with their specifications and real benchmark data
   let components = {
     cpu: {
@@ -485,42 +509,69 @@
     <h2>3D Interactive PC Model</h2>
     <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
     <div class="model-container">
-      <model-viewer 
-        src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-        alt="Computer Hardware Components"
-        camera-controls
-        auto-rotate
-        shadow-intensity="1"
-        environment-image="neutral"
-        exposure="1"
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        camera-orbit="45deg 55deg 2.5m"
-        min-camera-orbit="auto auto 1m"
-        max-camera-orbit="auto auto 3m"
-        field-of-view="30deg"
-        style="width: 100%; height: 400px;"
-        poster="/models/pc-case-poster.jpg"
-      >
-        <div class="model-overlay">
-          <div class="performance-indicator cpu-indicator">
-            <span class="indicator-label">CPU</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
+      {#if isBrowser}
+        <model-viewer 
+          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          alt="Computer Hardware Components"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          environment-image="neutral"
+          exposure="1"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          camera-orbit="45deg 55deg 2.5m"
+          min-camera-orbit="auto auto 1m"
+          max-camera-orbit="auto auto 3m"
+          field-of-view="30deg"
+          style="width: 100%; height: 400px;"
+          poster="/models/pc-case-poster.jpg"
+        >
+          <div class="model-overlay">
+            <div class="performance-indicator cpu-indicator">
+              <span class="indicator-label">CPU</span>
+              <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
+            </div>
+            <div class="performance-indicator gpu-indicator">
+              <span class="indicator-label">GPU</span>
+              <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
+            </div>
+            <div class="performance-indicator ram-indicator">
+              <span class="indicator-label">RAM</span>
+              <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
+            </div>
+            <div class="performance-indicator storage-indicator">
+              <span class="indicator-label">Storage</span>
+              <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
+            </div>
           </div>
-          <div class="performance-indicator gpu-indicator">
-            <span class="indicator-label">GPU</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
-          </div>
-          <div class="performance-indicator ram-indicator">
-            <span class="indicator-label">RAM</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
-          </div>
-          <div class="performance-indicator storage-indicator">
-            <span class="indicator-label">Storage</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
+        </model-viewer>
+      {:else}
+        <div class="model-placeholder">
+          <div class="placeholder-content">
+            <h3>3D Model Loading...</h3>
+            <p>Professional 3D visualization will appear here</p>
+            <div class="performance-overlay">
+              <div class="performance-indicator">
+                <span class="indicator-label">CPU</span>
+                <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
+              </div>
+              <div class="performance-indicator">
+                <span class="indicator-label">GPU</span>
+                <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
+              </div>
+              <div class="performance-indicator">
+                <span class="indicator-label">RAM</span>
+                <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
+              </div>
+              <div class="performance-indicator">
+                <span class="indicator-label">Storage</span>
+                <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
+              </div>
+            </div>
           </div>
         </div>
-      </model-viewer>
+      {/if}
     </div>
     <div class="model-legend">
       <div class="legend-item">
@@ -780,6 +831,38 @@
     margin: 1rem 0;
     overflow: hidden;
     position: relative;
+  }
+
+  .model-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+  }
+
+  .placeholder-content {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .placeholder-content h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .placeholder-content p {
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  .performance-overlay {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 1rem;
   }
 
   .model-overlay {
