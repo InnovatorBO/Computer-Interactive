@@ -39,7 +39,6 @@
 		"publint": "^0.3.2",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
-		"three": "^0.178.0",
 		"typescript": "^5.0.0",
 		"vite": "^7.0.4"
 	},
@@ -47,9 +46,6 @@
 		"svelte"
 	],
 	"dependencies": {
-		"@google/model-viewer": "^4.1.0",
-		"@jscad/modeling": "^2.12.5",
-		"@types/three": "^0.178.1",
 		"three": "^0.178.0"
 	}
 }
