@@ -18,7 +18,7 @@
 
 <svelte:head>
   <title>{title}</title>
-</svelte:head>
+</svelte:head>n
 
 <div class="page-container">
   <h1>{title}</h1>

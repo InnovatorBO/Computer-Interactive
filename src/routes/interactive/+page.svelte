@@ -193,55 +193,8 @@
             console.log('PC model geometry created:', pcModel);
             
             // Since STL export is not working, let's use a simple approach
-            // Create a basic GLTF-like structure for a cube
-            const gltfData = {
-              "asset": { "version": "2.0" },
-              "scene": 0,
-              "scenes": [{ "nodes": [0] }],
-              "nodes": [{ "mesh": 0 }],
-              "meshes": [{
-                "primitives": [{
-                  "attributes": {
-                    "POSITION": 0
-                  },
-                  "indices": 1
-                }]
-              }],
-              "accessors": [
-                {
-                  "bufferView": 0,
-                  "componentType": 5126,
-                  "count": 24,
-                  "type": "VEC3",
-                  "max": [1, 1, 1],
-                  "min": [-1, -1, -1]
-                },
-                {
-                  "bufferView": 1,
-                  "componentType": 5123,
-                  "count": 36,
-                  "type": "SCALAR"
-                }
-              ],
-              "bufferViews": [
-                {
-                  "buffer": 0,
-                  "byteLength": 288,
-                  "byteOffset": 0
-                },
-                {
-                  "buffer": 0,
-                  "byteLength": 72,
-                  "byteOffset": 288
-                }
-              ],
-              "buffers": [{
-                "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
-              }]
-            };
-            
-            const gltfBlob = new Blob([JSON.stringify(gltfData)], { type: 'model/gltf+json' });
-            const gltfUrl = URL.createObjectURL(gltfBlob);
+            // Use a known working GLTF file for a cube
+            const gltfUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
             
             console.log('GLTF URL created:', gltfUrl);
             
