@@ -225,6 +225,9 @@
         // Generate the PC model
         await generatePCModel();
         
+        // Initialize performance calculation
+        calculatePerformance();
+        
         // Create initial component models
         updateComponentModel('cpu');
         updateComponentModel('gpu');
@@ -485,8 +488,7 @@
     calculatePerformance();
   }
 
-  // Initialize performance calculation
-  calculatePerformance();
+  // Initialize performance calculation - moved to client-side
 
   // Get performance color based on score
   function getScoreColor(score: number, maxScore: number = 1000) {
@@ -517,20 +519,7 @@
     return descriptions[benchmark] || '';
   }
 
-  onMount(() => {
-    // Initialize model-viewer
-    modelViewer = document.querySelector('model-viewer');
-    
-    // Create initial PC case and components
-    const pcCase = createPCCase();
-    console.log('PC Case created with JSCAD:', pcCase);
-    
-    // Create initial component models
-    updateComponentModel('cpu');
-    updateComponentModel('gpu');
-    updateComponentModel('ram');
-    updateComponentModel('storage');
-  });
+
 </script>
 
 <svelte:head>
