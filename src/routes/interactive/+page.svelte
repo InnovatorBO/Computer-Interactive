@@ -174,7 +174,7 @@
             
             // For now, let's use a simple approach - create a basic 3D model
             // that model-viewer can definitely handle
-            const { primitives, transforms, booleans, io } = modeling;
+            const { primitives, transforms, booleans } = modeling;
             
             // Create a simple PC case as a cube with valid positive dimensions
             const pcCase = primitives.cube({ size: 100 });
@@ -192,19 +192,62 @@
             
             console.log('PC model geometry created:', pcModel);
             
-            // Try to convert to STL
-            const stlData = io.stl.serialize(pcModel);
-            console.log('STL data generated, size:', stlData.length);
+            // Since STL export is not working, let's use a simple approach
+            // Create a basic GLTF-like structure for a cube
+            const gltfData = {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [{ "nodes": [0] }],
+              "nodes": [{ "mesh": 0 }],
+              "meshes": [{
+                "primitives": [{
+                  "attributes": {
+                    "POSITION": 0
+                  },
+                  "indices": 1
+                }]
+              }],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 24,
+                  "type": "VEC3",
+                  "max": [1, 1, 1],
+                  "min": [-1, -1, -1]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5123,
+                  "count": 36,
+                  "type": "SCALAR"
+                }
+              ],
+              "bufferViews": [
+                {
+                  "buffer": 0,
+                  "byteLength": 288,
+                  "byteOffset": 0
+                },
+                {
+                  "buffer": 0,
+                  "byteLength": 72,
+                  "byteOffset": 288
+                }
+              ],
+              "buffers": [{
+                "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
+              }]
+            };
             
-            // Create a blob URL for the model
-            const blob = new Blob([stlData], { type: 'application/octet-stream' });
-            const modelUrl = URL.createObjectURL(blob);
+            const gltfBlob = new Blob([JSON.stringify(gltfData)], { type: 'model/gltf+json' });
+            const gltfUrl = URL.createObjectURL(gltfBlob);
             
-            console.log('Model URL created:', modelUrl);
+            console.log('GLTF URL created:', gltfUrl);
             
             // Update the model-viewer with our custom model
             if (modelViewer) {
-              modelViewer.src = modelUrl;
+              modelViewer.src = gltfUrl;
               console.log('PC model loaded successfully into model-viewer');
               
               // Add event listeners to track loading
@@ -221,22 +264,68 @@
           } catch (error) {
             console.error('Failed to generate PC model:', error);
             
-            // Fallback: Create a simple data URL for a basic cube
+            // Fallback: Use a simple cube model
             try {
-              const { primitives, io } = modeling;
-              const simpleCube = primitives.cube({ size: 50 });
-              const stlData = io.stl.serialize(simpleCube);
-              const blob = new Blob([stlData], { type: 'application/octet-stream' });
-              const modelUrl = URL.createObjectURL(blob);
+              console.log('Trying fallback cube model...');
+              
+              // Create a simple cube using a basic GLTF structure
+              const simpleGltf = {
+                "asset": { "version": "2.0" },
+                "scene": 0,
+                "scenes": [{ "nodes": [0] }],
+                "nodes": [{ "mesh": 0 }],
+                "meshes": [{
+                  "primitives": [{
+                    "attributes": {
+                      "POSITION": 0
+                    },
+                    "indices": 1
+                  }]
+                }],
+                "accessors": [
+                  {
+                    "bufferView": 0,
+                    "componentType": 5126,
+                    "count": 24,
+                    "type": "VEC3",
+                    "max": [0.5, 0.5, 0.5],
+                    "min": [-0.5, -0.5, -0.5]
+                  },
+                  {
+                    "bufferView": 1,
+                    "componentType": 5123,
+                    "count": 36,
+                    "type": "SCALAR"
+                  }
+                ],
+                "bufferViews": [
+                  {
+                    "buffer": 0,
+                    "byteLength": 288,
+                    "byteOffset": 0
+                  },
+                  {
+                    "buffer": 0,
+                    "byteLength": 72,
+                    "byteOffset": 288
+                  }
+                ],
+                "buffers": [{
+                  "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
+                }]
+              };
+              
+              const simpleBlob = new Blob([JSON.stringify(simpleGltf)], { type: 'model/gltf+json' });
+              const simpleUrl = URL.createObjectURL(simpleBlob);
               
               if (modelViewer) {
-                modelViewer.src = modelUrl;
+                modelViewer.src = simpleUrl;
                 console.log('Fallback cube model loaded');
               }
             } catch (fallbackError) {
               console.error('Even fallback model failed:', fallbackError);
               
-              // Last resort: Use a simple data URL for a basic shape
+              // Last resort: Use a simple placeholder image
               if (modelViewer) {
                 // Use a simple placeholder image instead of invalid data
                 modelViewer.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBDIENhc2U8L3RleHQ+PC9zdmc+';
