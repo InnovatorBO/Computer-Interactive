@@ -4,11 +4,10 @@
   
   let title = 'Computer Performance Simulator';
   let modelViewer: any;
-  let isBrowser = false;
+  let isBrowser = typeof window !== 'undefined';
   
   // Import model-viewer only on the client side
   onMount(async () => {
-    isBrowser = true;
     if (typeof window !== 'undefined') {
       try {
         await import('@google/model-viewer');
