@@ -11,6 +11,7 @@
       <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
       <a href="/game_page" class:active={$page.url.pathname === '/game_page'}>Game</a>
       <a href='/explore' class:active={$page.url.pathname === '/explore'}>Explore</a>
+      <a href='/build' class:active={$page.url.pathname === '/build'}>Build</a>
     </div>
   </nav>
 
