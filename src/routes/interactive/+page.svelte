@@ -192,8 +192,9 @@
             
             console.log('PC model geometry created:', pcModel);
             
-            // Since STL export is not working, let's use a simple approach
-            // Use a known working GLTF file for a cube
+            // Since STL export is not working, let's create a simple PC case model
+            // For now, we'll use a simple approach - create a basic cube model
+            // that represents a PC case
             const gltfUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
             
             console.log('GLTF URL created:', gltfUrl);
@@ -676,22 +677,22 @@
     <h2>3D Interactive PC Model</h2>
     <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
     <div class="model-container">
-      <model-viewer 
-        src=""
-        alt="Computer Hardware Components"
-        camera-controls
-        auto-rotate
-        shadow-intensity="1"
-        environment-image="neutral"
-        exposure="1"
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        camera-orbit="45deg 55deg 2.5m"
-        min-camera-orbit="auto auto 1m"
-        max-camera-orbit="auto auto 3m"
-        field-of-view="30deg"
-        style="width: 100%; height: 400px;"
-      >
+      <div class="pc-case-3d">
+        <div class="pc-case">
+          <div class="case-front"></div>
+          <div class="case-side"></div>
+          <div class="case-top"></div>
+          <div class="case-back"></div>
+          <div class="case-bottom"></div>
+          <div class="case-other-side"></div>
+          
+          <!-- PC Components -->
+          <div class="component cpu" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
+          <div class="component gpu" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
+          <div class="component ram" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
+          <div class="component storage" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
+        </div>
+        
         <div class="model-overlay">
           <div class="performance-indicator cpu-indicator">
             <span class="indicator-label">CPU</span>
@@ -710,7 +711,7 @@
             <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
           </div>
         </div>
-      </model-viewer>
+      </div>
     </div>
     <div class="model-legend">
       <div class="legend-item">
@@ -970,6 +971,114 @@
     margin: 1rem 0;
     overflow: hidden;
     position: relative;
+  }
+
+  .pc-case-3d {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    perspective: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pc-case {
+    width: 200px;
+    height: 300px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotate 20s infinite linear;
+  }
+
+  .case-front, .case-side, .case-top, .case-back, .case-bottom, .case-other-side {
+    position: absolute;
+    width: 200px;
+    height: 300px;
+    background: #2c3e50;
+    border: 2px solid #34495e;
+  }
+
+  .case-front {
+    transform: translateZ(100px);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
+
+  .case-side {
+    transform: rotateY(90deg) translateZ(100px);
+    width: 200px;
+    height: 300px;
+    background: #34495e;
+  }
+
+  .case-other-side {
+    transform: rotateY(-90deg) translateZ(100px);
+    width: 200px;
+    height: 300px;
+    background: #34495e;
+  }
+
+  .case-top {
+    transform: rotateX(90deg) translateZ(150px);
+    width: 200px;
+    height: 200px;
+    background: #2c3e50;
+  }
+
+  .case-bottom {
+    transform: rotateX(-90deg) translateZ(150px);
+    width: 200px;
+    height: 200px;
+    background: #2c3e50;
+  }
+
+  .case-back {
+    transform: rotateY(180deg) translateZ(100px);
+    background: #34495e;
+  }
+
+  /* PC Components */
+  .component {
+    position: absolute;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .component.cpu {
+    width: 40px;
+    height: 40px;
+    top: 50px;
+    left: 80px;
+    transform: translateZ(101px);
+  }
+
+  .component.gpu {
+    width: 80px;
+    height: 20px;
+    top: 120px;
+    left: 60px;
+    transform: translateZ(101px);
+  }
+
+  .component.ram {
+    width: 15px;
+    height: 60px;
+    top: 80px;
+    left: 30px;
+    transform: translateZ(101px);
+  }
+
+  .component.storage {
+    width: 60px;
+    height: 15px;
+    top: 200px;
+    left: 70px;
+    transform: translateZ(101px);
+  }
+
+  @keyframes rotate {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
   }
 
   .model-placeholder {
