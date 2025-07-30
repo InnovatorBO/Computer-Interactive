@@ -35,12 +35,16 @@
 
 <div class="page-container">
   <h1>{title}</h1>
-  <p>This is the interactive section with dynamic components.</p>
+  <p>Yay</p>
 </div>
 
 <style>
   .page-container {
     min-height: 400px;
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   }
 
   .content-section {
@@ -49,6 +53,7 @@
     border: 1px solid #e2e2e2;
     border-radius: 8px;
     background: #fafafa;
+    background: #26343e;
   }
 
   .counter-container {
@@ -161,12 +166,12 @@
   }
 
   h1 {
-    color: #333;
+    color: #ffffff;
     margin-bottom: 1rem;
   }
 
   h2 {
-    color: #555;
+    color: #ffffff;
     margin-bottom: 0.5rem;
   }
 </style>

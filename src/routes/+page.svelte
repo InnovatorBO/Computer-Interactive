@@ -14,58 +14,80 @@
 </main>
 
 <svelte:head>
-  <title>{title}</title>
+    <title>Home Page</title>
 </svelte:head>
 
-<div class="page-container">
-  <h1>{title}</h1>
-  <p>Welcome to the home page. This is your starting point.</p>
-  
-  <div class="content-section">
-    <h2>Getting Started</h2>
-    <p>Add stuff</p>
-    
-    <button on:click={handleHomeAction} class="action-btn">
-      Home Action
-    </button>
-  </div>
+<div class="main-content">
+    <h1>Home Page</h1>
+    <p>Description/about the product</p>
+    <a href="#" class="cta-button" on:click={handleHomeAction}>Go to Product</a>
 </div>
 
 <style>
-  .page-container {
-    min-height: 400px;
-  }
+    .main-content {
+        flex: 1;
+        background: linear-gradient(135deg, 
+#2c3e50, 
+#34495e);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 300px 20px;
+        text-align: center;
+    }
 
-  .content-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    background: #fafafa;
-  }
+    .main-content h1 {
+        color: white;
+        font-size: 4rem;
+        font-weight: 300;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+    }
 
-  .action-btn {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-top: 1rem;
-  }
+    .main-content p {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin-bottom: 3rem;
+        opacity: 0.9;
+    }
 
-  .action-btn:hover {
-    background: #0056b3;
-  }
+    .cta-button {
+        background: linear-gradient(135deg, 
+#0497ad, 
+#02c75b);
+        color: 
+#2c3e50;
+        padding: 20px 40px;
+        border: white 2px solid;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
+    }
 
-  h1 {
-    color: #333;
-    margin-bottom: 1rem;
-  }
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+    }
 
-  h2 {
-    color: #555;
-    margin-bottom: 0.5rem;
-  }
+    @media (max-width: 768px) {
+        .main-content h1 {
+            font-size: 2.5rem;
+        }
+
+        .main-content p {
+            font-size: 1.5rem;
+        }
+
+        .cta-button {
+            padding: 15px 30px;
+            font-size: 1rem;
+        }
+    }
 </style>
