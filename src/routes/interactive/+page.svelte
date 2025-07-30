@@ -635,68 +635,41 @@
     <h2>3D Interactive PC Model</h2>
     <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
     <div class="model-container">
-      {#if isBrowser}
-        <model-viewer 
-          src=""
-          alt="Computer Hardware Components"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          environment-image="neutral"
-          exposure="1"
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          camera-orbit="45deg 55deg 2.5m"
-          min-camera-orbit="auto auto 1m"
-          max-camera-orbit="auto auto 3m"
-          field-of-view="30deg"
-          style="width: 100%; height: 400px;"
-        >
-          <div class="model-overlay">
-            <div class="performance-indicator cpu-indicator">
-              <span class="indicator-label">CPU</span>
-              <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
-            </div>
-            <div class="performance-indicator gpu-indicator">
-              <span class="indicator-label">GPU</span>
-              <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
-            </div>
-            <div class="performance-indicator ram-indicator">
-              <span class="indicator-label">RAM</span>
-              <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
-            </div>
-            <div class="performance-indicator storage-indicator">
-              <span class="indicator-label">Storage</span>
-              <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
-            </div>
+      <model-viewer 
+        src=""
+        alt="Computer Hardware Components"
+        camera-controls
+        auto-rotate
+        shadow-intensity="1"
+        environment-image="neutral"
+        exposure="1"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-orbit="45deg 55deg 2.5m"
+        min-camera-orbit="auto auto 1m"
+        max-camera-orbit="auto auto 3m"
+        field-of-view="30deg"
+        style="width: 100%; height: 400px;"
+      >
+        <div class="model-overlay">
+          <div class="performance-indicator cpu-indicator">
+            <span class="indicator-label">CPU</span>
+            <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
           </div>
-        </model-viewer>
-      {:else}
-        <div class="model-placeholder">
-          <div class="placeholder-content">
-            <h3>3D Model Loading...</h3>
-            <p>Professional 3D visualization will appear here</p>
-            <div class="performance-overlay">
-              <div class="performance-indicator">
-                <span class="indicator-label">CPU</span>
-                <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
-              </div>
-              <div class="performance-indicator">
-                <span class="indicator-label">GPU</span>
-                <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
-              </div>
-              <div class="performance-indicator">
-                <span class="indicator-label">RAM</span>
-                <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
-              </div>
-              <div class="performance-indicator">
-                <span class="indicator-label">Storage</span>
-                <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
-              </div>
-            </div>
+          <div class="performance-indicator gpu-indicator">
+            <span class="indicator-label">GPU</span>
+            <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
+          </div>
+          <div class="performance-indicator ram-indicator">
+            <span class="indicator-label">RAM</span>
+            <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
+          </div>
+          <div class="performance-indicator storage-indicator">
+            <span class="indicator-label">Storage</span>
+            <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
           </div>
         </div>
-      {/if}
+      </model-viewer>
     </div>
     <div class="model-legend">
       <div class="legend-item">
