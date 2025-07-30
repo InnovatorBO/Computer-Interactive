@@ -167,63 +167,163 @@
           }
         }
 
-        // Create a simple PC case model for display
-        function createSimplePCModel() {
-          const { primitives, transforms, booleans } = modeling;
-          
-          // Create a simple PC case
-          const caseBody = primitives.cube({ size: [150, 100, 80] });
-          
-          // Add some details
-          const frontPanel = primitives.cube({ size: [140, 90, 5] });
-          const frontPanelTransformed = transforms.translate([0, 0, -42.5], frontPanel);
-          
-          const sidePanel = primitives.cube({ size: [5, 100, 80] });
-          const sidePanelTransformed = transforms.translate([77.5, 0, 0], sidePanel);
-          
-          // Combine parts
-          let pcModel = booleans.union(caseBody, frontPanelTransformed);
-          pcModel = booleans.union(pcModel, sidePanelTransformed);
-          
-          return pcModel;
-        }
-
         // Generate and export the PC model
         async function generatePCModel() {
           try {
-            const { io } = modeling;
-            const pcModel = createSimplePCModel();
+            console.log('Starting PC model generation...');
             
-            // Convert to STL format (model-viewer can handle this)
+            // For now, let's use a simple approach - create a basic 3D model
+            // that model-viewer can definitely handle
+            const { primitives, transforms, booleans, io } = modeling;
+            
+            // Create a simple PC case as a cube
+            const pcCase = primitives.cube({ size: [100, 80, 60] });
+            
+            // Add some details to make it look more like a PC
+            const frontPanel = primitives.cube({ size: [90, 70, 5] });
+            const frontPanelTransformed = transforms.translate([0, 0, -32.5], frontPanel);
+            
+            const sidePanel = primitives.cube({ size: [5, 80, 60] });
+            const sidePanelTransformed = transforms.translate([52.5, 0, 0], sidePanel);
+            
+            // Combine all parts
+            let pcModel = booleans.union(pcCase, frontPanelTransformed);
+            pcModel = booleans.union(pcModel, sidePanelTransformed);
+            
+            console.log('PC model geometry created:', pcModel);
+            
+            // Try to convert to STL
             const stlData = io.stl.serialize(pcModel);
+            console.log('STL data generated, size:', stlData.length);
             
             // Create a blob URL for the model
             const blob = new Blob([stlData], { type: 'application/octet-stream' });
             const modelUrl = URL.createObjectURL(blob);
             
+            console.log('Model URL created:', modelUrl);
+            
             // Update the model-viewer with our custom model
             if (modelViewer) {
               modelViewer.src = modelUrl;
-              console.log('PC model loaded successfully');
+              console.log('PC model loaded successfully into model-viewer');
+              
+              // Add event listeners to track loading
+              modelViewer.addEventListener('load', () => {
+                console.log('Model loaded successfully');
+              });
+              
+              modelViewer.addEventListener('error', (error) => {
+                console.error('Model loading error:', error);
+              });
+            } else {
+              console.error('Model viewer element not found');
             }
           } catch (error) {
             console.error('Failed to generate PC model:', error);
-            // Fallback to a simple cube model
-            const { primitives, io } = modeling;
-            const simpleCube = primitives.cube({ size: [100, 100, 100] });
-            const stlData = io.stl.serialize(simpleCube);
-            const blob = new Blob([stlData], { type: 'application/octet-stream' });
-            const modelUrl = URL.createObjectURL(blob);
             
-            if (modelViewer) {
-              modelViewer.src = modelUrl;
-              console.log('Fallback cube model loaded');
+            // Fallback: Create a simple data URL for a basic cube
+            try {
+              const { primitives, io } = modeling;
+              const simpleCube = primitives.cube({ size: [50, 50, 50] });
+              const stlData = io.stl.serialize(simpleCube);
+              const blob = new Blob([stlData], { type: 'application/octet-stream' });
+              const modelUrl = URL.createObjectURL(blob);
+              
+              if (modelViewer) {
+                modelViewer.src = modelUrl;
+                console.log('Fallback cube model loaded');
+              }
+            } catch (fallbackError) {
+              console.error('Even fallback model failed:', fallbackError);
+              
+              // Last resort: Use a simple data URL for a basic shape
+              if (modelViewer) {
+                // Create a simple cube using data URL
+                const cubeData = `data:application/octet-stream;base64,${btoa('simple cube data')}`;
+                modelViewer.src = cubeData;
+                console.log('Using basic data URL as last resort');
+              }
             }
           }
         }
         
-        // Generate the PC model
-        await generatePCModel();
+        // Alternative: Use a simple GLTF model that model-viewer definitely supports
+        async function loadSimplePCModel() {
+          try {
+            console.log('Loading simple PC model...');
+            
+            // Create a simple GLTF-like structure for a cube
+            const gltfData = {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [{ "nodes": [0] }],
+              "nodes": [{ "mesh": 0 }],
+              "meshes": [{
+                "primitives": [{
+                  "attributes": {
+                    "POSITION": 0
+                  },
+                  "indices": 1
+                }]
+              }],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 24,
+                  "type": "VEC3",
+                  "max": [1, 1, 1],
+                  "min": [-1, -1, -1]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5123,
+                  "count": 36,
+                  "type": "SCALAR"
+                }
+              ],
+              "bufferViews": [
+                {
+                  "buffer": 0,
+                  "byteLength": 288,
+                  "byteOffset": 0
+                },
+                {
+                  "buffer": 0,
+                  "byteLength": 72,
+                  "byteOffset": 288
+                }
+              ],
+              "buffers": [{
+                "uri": "data:application/octet-stream;base64,AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMA"
+              }]
+            };
+            
+            const gltfBlob = new Blob([JSON.stringify(gltfData)], { type: 'model/gltf+json' });
+            const gltfUrl = URL.createObjectURL(gltfBlob);
+            
+            if (modelViewer) {
+              modelViewer.src = gltfUrl;
+              console.log('Simple GLTF model loaded');
+            }
+          } catch (error) {
+            console.error('Failed to load simple GLTF model:', error);
+            
+            // Final fallback: Use a placeholder image
+            if (modelViewer) {
+              modelViewer.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBDIENhc2U8L3RleHQ+PC9zdmc+';
+              console.log('Using placeholder image as final fallback');
+            }
+          }
+        }
+        
+        // Generate the PC model - try the simple approach first
+        try {
+          await generatePCModel();
+        } catch (error) {
+          console.error('Primary model generation failed, trying simple approach:', error);
+          await loadSimplePCModel();
+        }
         
         // Initialize performance calculation
         calculatePerformance();
