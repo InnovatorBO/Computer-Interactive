@@ -20,19 +20,19 @@
           const { primitives, transforms, booleans } = modeling;
           
           // CPU base
-          const cpuBase = primitives.cube({ size: [25, 25, 8] });
+          const cpuBase = primitives.cube({ size: 25 });
           
           // CPU heatsink with fins
-          const heatsinkBase = primitives.cube({ size: [35, 35, 10] });
+          const heatsinkBase = primitives.cube({ size: 35 });
           const heatsinkBaseTransformed = transforms.translate([0, 0, 8], heatsinkBase);
           
           // Create heatsink fins
-          let fins = primitives.cube({ size: [2, 2, 15] });
+          let fins = primitives.cube({ size: 2 });
           fins = transforms.translate([-16.5, -16.5, 8], fins);
           
           for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
-              const fin = primitives.cube({ size: [2, 2, 15] });
+              const fin = primitives.cube({ size: 2 });
               const finTransformed = transforms.translate([-16.5 + i * 4.5, -16.5 + j * 4.5, 8], fin);
               fins = booleans.union(fins, finTransformed);
             }
@@ -56,10 +56,10 @@
           const { primitives, transforms, booleans } = modeling;
           
           // GPU PCB
-          const gpuPcb = primitives.cube({ size: [80, 12, 35] });
+          const gpuPcb = primitives.cube({ size: 80 });
           
           // GPU core
-          const gpuCore = primitives.cube({ size: [20, 12, 35] });
+          const gpuCore = primitives.cube({ size: 20 });
           const gpuCoreTransformed = transforms.translate([-30, 0, 0], gpuCore);
           
           // GPU fans
@@ -70,7 +70,7 @@
           const fan2Transformed = transforms.translate([20, 0, 37], fan2);
           
           // GPU backplate
-          const backplate = primitives.cube({ size: [80, 2, 35] });
+          const backplate = primitives.cube({ size: 80 });
           const backplateTransformed = transforms.translate([0, 0, -18.5], backplate);
           
           // Combine all parts
@@ -88,10 +88,10 @@
           const { primitives, transforms, booleans } = modeling;
           
           // RAM module
-          const ramModule = primitives.cube({ size: [12, 55, 4] });
+          const ramModule = primitives.cube({ size: 12 });
           
           // RAM heat spreader
-          const heatspreader = primitives.cube({ size: [12, 55, 6] });
+          const heatspreader = primitives.cube({ size: 12 });
           const heatspreaderTransformed = transforms.translate([0, 0, 5], heatspreader);
           
           // Combine parts
@@ -106,10 +106,10 @@
           const { primitives, transforms, booleans } = modeling;
           
           // M.2 SSD
-          const ssd = primitives.cube({ size: [35, 8, 22] });
+          const ssd = primitives.cube({ size: 35 });
           
           // SSD heat sink
-          const heatsink = primitives.cube({ size: [35, 8, 25] });
+          const heatsink = primitives.cube({ size: 35 });
           const heatsinkTransformed = transforms.translate([0, 0, 23.5], heatsink);
           
           // Combine parts
@@ -176,15 +176,15 @@
             // that model-viewer can definitely handle
             const { primitives, transforms, booleans, io } = modeling;
             
-            // Create a simple PC case as a cube
-            const pcCase = primitives.cube({ size: [100, 80, 60] });
+            // Create a simple PC case as a cube with valid positive dimensions
+            const pcCase = primitives.cube({ size: 100 });
             
             // Add some details to make it look more like a PC
-            const frontPanel = primitives.cube({ size: [90, 70, 5] });
-            const frontPanelTransformed = transforms.translate([0, 0, -32.5], frontPanel);
+            const frontPanel = primitives.cube({ size: 90 });
+            const frontPanelTransformed = transforms.translate([0, 0, -50], frontPanel);
             
-            const sidePanel = primitives.cube({ size: [5, 80, 60] });
-            const sidePanelTransformed = transforms.translate([52.5, 0, 0], sidePanel);
+            const sidePanel = primitives.cube({ size: 80 });
+            const sidePanelTransformed = transforms.translate([50, 0, 0], sidePanel);
             
             // Combine all parts
             let pcModel = booleans.union(pcCase, frontPanelTransformed);
@@ -224,7 +224,7 @@
             // Fallback: Create a simple data URL for a basic cube
             try {
               const { primitives, io } = modeling;
-              const simpleCube = primitives.cube({ size: [50, 50, 50] });
+              const simpleCube = primitives.cube({ size: 50 });
               const stlData = io.stl.serialize(simpleCube);
               const blob = new Blob([stlData], { type: 'application/octet-stream' });
               const modelUrl = URL.createObjectURL(blob);
@@ -238,10 +238,9 @@
               
               // Last resort: Use a simple data URL for a basic shape
               if (modelViewer) {
-                // Create a simple cube using data URL
-                const cubeData = `data:application/octet-stream;base64,${btoa('simple cube data')}`;
-                modelViewer.src = cubeData;
-                console.log('Using basic data URL as last resort');
+                // Use a simple placeholder image instead of invalid data
+                modelViewer.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlBDIENhc2U8L3RleHQ+PC9zdmc+';
+                console.log('Using placeholder image as final fallback');
               }
             }
           }
