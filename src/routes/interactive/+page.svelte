@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import * as modeling from '@jscad/modeling';
   
   let title = 'Computer Performance Simulator';
   let modelViewer: any;
-  let isBrowser = typeof window !== 'undefined';
+  let isBrowser = browser;
   
   // Import model-viewer only on the client side
   onMount(async () => {
