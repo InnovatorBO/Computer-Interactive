@@ -18,14 +18,14 @@
   let isBrowser = browser;
   
   // Initialize Three.js 3D scene
-  onMount(() => {
+  onMount(async () => {
     if (typeof window !== 'undefined' && canvasContainer) {
-      initThreeJS();
+      await initThreeJS();
       calculatePerformance();
     }
   });
 
-  function initThreeJS() {
+  async function initThreeJS() {
     // Scene setup
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a1a);
