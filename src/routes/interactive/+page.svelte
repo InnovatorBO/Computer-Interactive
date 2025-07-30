@@ -3,6 +3,7 @@
   import { browser } from '$app/environment';
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
   
   let title = 'Computer Performance Simulator';
   let canvasContainer: HTMLDivElement;
@@ -130,11 +131,15 @@
 
   async function loadRealisticModels() {
     // Load actual 3D models from online sources
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    
     const loader = new GLTFLoader();
+    loader.setDRACOLoader(dracoLoader);
     
     try {
       // Load realistic CPU model from online source
-      const cpuModelUrl = 'https://threejs.org/examples/models/gltf/LittlestTokyo.glb';
+      const cpuModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
       const cpuGltf = await loader.loadAsync(cpuModelUrl);
       const cpuMesh = cpuGltf.scene.children[0];
       cpuMesh.scale.set(0.5, 0.5, 0.2);
@@ -145,7 +150,7 @@
       cpuModel = cpuMesh;
 
       // Load realistic GPU model from online source
-      const gpuModelUrl = 'https://threejs.org/examples/models/gltf/LittlestTokyo.glb';
+      const gpuModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
       const gpuGltf = await loader.loadAsync(gpuModelUrl);
       const gpuMesh = gpuGltf.scene.children[0];
       gpuMesh.scale.set(2.5, 0.3, 1.2);
@@ -156,7 +161,7 @@
       gpuModel = gpuMesh;
 
       // Load realistic RAM model from online source
-      const ramModelUrl = 'https://threejs.org/examples/models/gltf/LittlestTokyo.glb';
+      const ramModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
       const ramGltf = await loader.loadAsync(ramModelUrl);
       const ramMesh = ramGltf.scene.children[0];
       ramMesh.scale.set(0.3, 1.5, 0.1);
@@ -167,7 +172,7 @@
       ramModel = ramMesh;
 
       // Load realistic Storage model from online source
-      const storageModelUrl = 'https://threejs.org/examples/models/gltf/LittlestTokyo.glb';
+      const storageModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
       const storageGltf = await loader.loadAsync(storageModelUrl);
       const storageMesh = storageGltf.scene.children[0];
       storageMesh.scale.set(1.5, 0.1, 0.8);
