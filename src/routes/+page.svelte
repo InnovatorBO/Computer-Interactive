@@ -234,13 +234,13 @@
 </script>
 
 <svelte:head>
-  <title>Home Page</title>
+  <title>Welcome to the Thinking Machine</title>
 </svelte:head>
 
 <div bind:this={container} class="three-container"></div>
 
 <div class="main-content">
-  <h1>Home Page</h1>
+  <h1>Thinking Machine</h1>
   <p>Description/about the product</p>
   <a href="/learn" class="cta-button">Go to Product</a>
 </div>
