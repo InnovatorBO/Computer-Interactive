@@ -23,25 +23,137 @@
       closePopup();
     }
   }
+
+  let quizMode = $state(false);
+  let currentQuestion = $state(0);
+  let score = $state(0);
+  let showResults = $state(false);
+  let selectedAnswer = $state<number | null>(null);
+  let quizCompleted = $state(false);
+  let showCorrectAnswer = $state(false);
+
+  const quizQuestions = [
+    {
+      question: "What is the main function of the CPU?",
+      options: [
+        "To store data permanently",
+        "To execute instructions and perform calculations",
+        "To display graphics on screen",
+        "To provide power to the computer"
+      ],
+      correct: 1,
+      explanation: "The CPU is the brain of your computer that executes instructions from programs and performs calculations."
+    },
+    {
+      question: "What does RAM stand for?",
+      options: [
+        "Random Access Memory",
+        "Read Only Memory",
+        "Remote Access Module",
+        "Rapid Application Management"
+      ],
+      correct: 0,
+      explanation: "RAM stands for Random Access Memory, which is your computer's temporary workspace."
+    },
+    {
+      question: "Which component is responsible for rendering graphics and images?",
+      options: [
+        "CPU",
+        "RAM",
+        "GPU",
+        "Storage Drive"
+      ],
+      correct: 2,
+      explanation: "The GPU handles all visual processing and renders images, videos, and animations you see on your screen."
+    },
+    {
+      question: "What is the difference between HDD and SSD?",
+      options: [
+        "HDD is faster than SSD",
+        "SSD uses flash memory while HDD uses spinning disks",
+        "SSD is cheaper than HDD",
+        "HDD has more storage capacity"
+      ],
+      correct: 1,
+      explanation: "SSDs use flash memory for faster access, while traditional HDDs use spinning disks."
+    },
+    {
+      question: "What happens to RAM data when the computer is turned off?",
+      options: [
+        "It is saved permanently",
+        "It is transferred to the hard drive",
+        "It is lost (volatile memory)",
+        "It is backed up automatically"
+      ],
+      correct: 2,
+      explanation: "RAM is volatile memory, meaning it loses all data when the computer is turned off."
+    }
+  ];
+
+  function startQuiz() {
+    quizMode = true;
+    currentQuestion = 0;
+    score = 0;
+    showResults = false;
+    selectedAnswer = null;
+    quizCompleted = false;
+    showCorrectAnswer = false;
+  }
+
+  function selectAnswer(answerIndex: number) {
+    selectedAnswer = answerIndex;
+  }
+
+  function submitAnswer() {
+    if (selectedAnswer === null) return;
+    
+    showCorrectAnswer = true;
+    
+    if (selectedAnswer === quizQuestions[currentQuestion].correct) {
+      score++;
+    }
+  }
+
+  function continueToNext() {
+    if (currentQuestion < quizQuestions.length - 1) {
+      currentQuestion++;
+      selectedAnswer = null;
+      showCorrectAnswer = false;
+    } else {
+      showResults = true;
+      quizCompleted = true;
+    }
+  }
+
+  function resetQuiz() {
+    quizMode = false;
+    currentQuestion = 0;
+    score = 0;
+    showResults = false;
+    selectedAnswer = null;
+    quizCompleted = false;
+    showCorrectAnswer = false;
+  }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="page-container">
-  <h1>Explore</h1>
+  <h1>Learn</h1>
 </div>
 
 <div class="explore-container">
   <div class="main-content">
     <div class="sidebar">
-      <button class="info-button" on:click={() => showPopup('cpu')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for info</button>
+      <button class="info-button" on:click={() => showPopup('cpu')}>▼ Click for CPU info</button>
+      <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for RAM info</button>
+      <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for GPU info</button>
+      <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for Storage info</button>
     </div>
     
     <div class="computer-display">
       <div class="computer-interior">
+        <img src="/comp.png" alt="Computer interior background" class="background-image" />
         <div class="cables">
           <div class="cable cable1"></div>
           <div class="cable cable2"></div>
@@ -111,6 +223,91 @@
   </div>
 {/if}
 
+<!-- Quiz Section -->
+<div class="quiz-section">
+  <div class="quiz-container">
+    {#if !quizMode}
+      <div class="quiz-intro">
+        <h2>Test Your Knowledge!</h2>
+        <p>Take our mini quiz</p>
+        <button class="quiz-start-btn" on:click={startQuiz}>Start Quiz</button>
+      </div>
+    {:else if !showResults}
+      <div class="quiz-question">
+        <div class="quiz-header">
+          <h2>Question {currentQuestion + 1} of {quizQuestions.length}</h2>
+          <div class="quiz-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: {((currentQuestion + 1) / quizQuestions.length) * 100}%"></div>
+            </div>
+            <span class="score">Score: {score}/{currentQuestion}</span>
+          </div>
+        </div>
+        
+        <div class="question-content">
+          <h3>{quizQuestions[currentQuestion].question}</h3>
+          
+          <div class="answer-options">
+            {#each quizQuestions[currentQuestion].options as option, index}
+              <button 
+                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === quizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== quizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
+                on:click={() => selectAnswer(index)}
+                disabled={showCorrectAnswer}
+              >
+                {String.fromCharCode(65 + index)}. {option}
+              </button>
+            {/each}
+          </div>
+          
+          {#if showCorrectAnswer}
+            <div class="correct-answer">
+              <h4>Correct Answer: {String.fromCharCode(65 + quizQuestions[currentQuestion].correct)}. {quizQuestions[currentQuestion].options[quizQuestions[currentQuestion].correct]}</h4>
+              <p>{quizQuestions[currentQuestion].explanation}</p>
+            </div>
+          {/if}
+          
+          <div class="quiz-actions">
+            {#if selectedAnswer !== null && !showCorrectAnswer}
+              <button class="submit-btn" on:click={submitAnswer}>
+                Submit Answer
+              </button>
+            {:else if showCorrectAnswer}
+              <button class="continue-btn" on:click={continueToNext}>
+                {currentQuestion === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+              </button>
+            {/if}
+          </div>
+        </div>
+      </div>
+    {:else}
+      <div class="quiz-results">
+        <h2>Quiz Complete!</h2>
+        <div class="results-content">
+          <div class="score-display">
+            <h3>Your Score: {score}/{quizQuestions.length}</h3>
+            <div class="score-percentage">
+              {Math.round((score / quizQuestions.length) * 100)}%
+            </div>
+            <div class="score-message">
+              {#if score === quizQuestions.length}
+                Perfect, you're a computer expert! 
+              {:else if score >= quizQuestions.length * 0.8}
+                Great job! 
+              {:else if score >= quizQuestions.length * 0.6}
+                Good work! Keep learning! 
+              {:else}
+                Keep studying with our interactive model and flashcards!
+              {/if}
+            </div>
+          </div>
+          
+          <button class="retry-btn" on:click={resetQuiz}>Take Quiz Again</button>
+        </div>
+      </div>
+    {/if}
+  </div>
+</div>
+
 <style>
   :global(*) {
     margin: 0;
@@ -119,12 +316,14 @@
   }
 
   :global(html, body) {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
     font-family: Arial, sans-serif;
+}
+
+.explore-container {
+    min-height: 100vh;
+    width: 100%;
     background: #304357;
-  }
+}
 
   .page-container {
     position: absolute;
@@ -215,7 +414,7 @@
     border-radius: 15px;
     padding: 20px;
     width: 600px;
-    height: 450px;
+    height: 600px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
   }
@@ -224,6 +423,10 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(45deg, #2c3e50, #34495e);
+    background-image: url('/comp.png'); 
+    background-size: cover;  
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 10px;
     position: relative;
     overflow: hidden;
@@ -231,6 +434,17 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 20px;
+  }
+
+  .background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0.3;  
   }
 
   .component {
@@ -248,6 +462,7 @@
     font-size: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
+    z-index: 1;  
   }
 
   .component:hover {
@@ -429,6 +644,199 @@
     transform: rotate(15deg); 
   }
 
+  .quiz-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 20px;
+    margin-top: 40px;
+  }
+
+  .quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .quiz-intro {
+    text-align: center;
+  }
+
+  .quiz-intro h2 {
+    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+
+  .quiz-intro p {
+    color: #666;
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+
+  .quiz-start-btn {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  }
+
+  .quiz-start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  }
+
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .quiz-header h2 {
+    color: #333;
+    font-size: 1.5rem;
+  }
+
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .progress-bar {
+    width: 150px;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    transition: width 0.3s ease;
+  }
+
+  .score {
+    font-weight: bold;
+    color: #333;
+  }
+
+  .question-content h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    line-height: 1.4;
+  }
+
+  .answer-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+
+  .answer-btn {
+    background: white;
+    border: 2px solid #e0e0e0;
+    padding: 15px 20px;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #333;
+  }
+
+  .answer-btn:hover {
+    border-color: #4CAF50;
+    background: #f9f9f9;
+  }
+
+  .answer-btn.selected {
+    border-color: #4CAF50;
+    background: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  .submit-btn {
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  }
+
+  .quiz-results {
+    text-align: center;
+  }
+
+  .quiz-results h2 {
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+
+  .score-display {
+    margin-bottom: 30px;
+  }
+
+  .score-display h3 {
+    color: #333;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .score-percentage {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 15px;
+  }
+
+  .score-message {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .retry-btn {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  }
+
+  .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  }
+
   @media (max-width: 768px) {
     .main-content {
       flex-direction: column;
@@ -455,5 +863,75 @@
 
     .page-container h1 { font-size: 2rem; }
     .page-container p { font-size: 1rem; }
+
+    .quiz-container {
+      padding: 20px;
+      margin: 0 10px;
+    }
+    
+    .quiz-header {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .quiz-progress {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .answer-btn {
+      font-size: 0.9rem;
+      padding: 12px 15px;
+    }
+  }
+
+  .answer-btn.correct {
+    border-color: #4CAF50;
+    background: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  .answer-btn.incorrect {
+    border-color: #f44336;
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .correct-answer {
+    background: #e8f5e8;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .correct-answer h4 {
+    color: #2e7d32;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+
+  .correct-answer p {
+    color: #666;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .continue-btn {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+
+  .continue-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
   }
 </style>
