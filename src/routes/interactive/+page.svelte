@@ -67,7 +67,11 @@
 
     // Create a more realistic PC case with better proportions
     const caseGeometry = new THREE.BoxGeometry(4, 3, 2);
-    const caseMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+    const caseMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x2c3e50,
+      metalness: 0.3,
+      roughness: 0.7
+    });
     const caseMesh = new THREE.Mesh(caseGeometry, caseMaterial);
     caseMesh.castShadow = true;
     caseMesh.receiveShadow = true;
@@ -75,7 +79,11 @@
 
     // Add front panel with mesh vents
     const frontPanelGeometry = new THREE.PlaneGeometry(3.8, 2.8);
-    const frontMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const frontMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x34495e,
+      metalness: 0.2,
+      roughness: 0.8
+    });
     const frontPanel = new THREE.Mesh(frontPanelGeometry, frontMaterial);
     frontPanel.position.set(0, 0, 1.1);
     pcCase.add(frontPanel);
@@ -84,7 +92,11 @@
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 4; j++) {
         const ventGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.05);
-        const ventMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+        const ventMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x1a1a1a,
+          metalness: 0.1,
+          roughness: 0.9
+        });
         const vent = new THREE.Mesh(ventGeometry, ventMaterial);
         vent.position.set(-1.5 + i * 0.6, -1 + j * 0.6, 1.15);
         pcCase.add(vent);
@@ -93,10 +105,12 @@
 
     // Add side panel with window
     const sideGeometry = new THREE.PlaneGeometry(2, 3);
-    const sideMaterial = new THREE.MeshLambertMaterial({ 
+    const sideMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x34495e, 
       transparent: true, 
-      opacity: 0.3 
+      opacity: 0.3,
+      metalness: 0.1,
+      roughness: 0.9
     });
     const sideMesh = new THREE.Mesh(sideGeometry, sideMaterial);
     sideMesh.position.set(2.1, 0, 0);
@@ -104,14 +118,22 @@
 
     // Add back panel with I/O ports
     const backPanelGeometry = new THREE.PlaneGeometry(3.8, 2.8);
-    const backMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const backMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x34495e,
+      metalness: 0.2,
+      roughness: 0.8
+    });
     const backPanel = new THREE.Mesh(backPanelGeometry, backMaterial);
     backPanel.position.set(0, 0, -1.1);
     pcCase.add(backPanel);
 
     // Add I/O ports to back panel
     const ioPortGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.05);
-    const ioMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const ioMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x1a1a1a,
+      metalness: 0.1,
+      roughness: 0.9
+    });
     for (let i = 0; i < 8; i++) {
       const ioPort = new THREE.Mesh(ioPortGeometry, ioMaterial);
       ioPort.position.set(-1.5 + i * 0.4, 1, -1.15);
@@ -120,7 +142,11 @@
 
     // Add power button
     const powerButtonGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8);
-    const powerButtonMaterial = new THREE.MeshLambertMaterial({ color: 0x27ae60 });
+    const powerButtonMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x27ae60,
+      metalness: 0.5,
+      roughness: 0.5
+    });
     const powerButton = new THREE.Mesh(powerButtonGeometry, powerButtonMaterial);
     powerButton.position.set(-1.5, 1.2, 1.15);
     powerButton.rotation.x = Math.PI / 2;
@@ -130,29 +156,238 @@
   }
 
   async function loadRealisticModels() {
-    // Load actual 3D models from online sources
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-    
-    const loader = new GLTFLoader();
-    loader.setDRACOLoader(dracoLoader);
-    
     try {
-      // Try to load a simple cube model first to test if loading works
-      const testModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
-      const testGltf = await loader.loadAsync(testModelUrl);
+      // Create simple but distinctive computer components
       
-      if (!testGltf || !testGltf.scene || !testGltf.scene.children || testGltf.scene.children.length === 0) {
-        throw new Error('Failed to load test model - model structure is invalid');
+      // CPU - make it more prominent
+      const cpuGeometry = new THREE.BoxGeometry(1.0, 1.0, 0.2);
+      const cpuMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x00ff00, // Bright green
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      const cpuMesh = new THREE.Mesh(cpuGeometry, cpuMaterial);
+      cpuMesh.position.set(-1, 0.5, 0.5);
+      cpuMesh.castShadow = true;
+      cpuMesh.receiveShadow = true;
+      pcCase.add(cpuMesh);
+      cpuModel = cpuMesh;
+
+      // CPU heatsink - make it larger and more visible
+      const heatsinkGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.4);
+      const heatsinkMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x8B4513, // Brown
+        metalness: 0.3,
+        roughness: 0.7
+      });
+      const heatsinkMesh = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
+      heatsinkMesh.position.set(-1, 0.5, 0.9);
+      heatsinkMesh.castShadow = true;
+      pcCase.add(heatsinkMesh);
+
+      // GPU - make it larger and more prominent
+      const gpuGeometry = new THREE.BoxGeometry(3.0, 0.4, 1.5);
+      const gpuMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xff0000, // Bright red
+        metalness: 0.6,
+        roughness: 0.4
+      });
+      const gpuMesh = new THREE.Mesh(gpuGeometry, gpuMaterial);
+      gpuMesh.position.set(0, -0.5, 0.5);
+      gpuMesh.castShadow = true;
+      gpuMesh.receiveShadow = true;
+      pcCase.add(gpuMesh);
+      gpuModel = gpuMesh;
+
+      // GPU fans - make them more visible
+      const fanGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 8);
+      const fanMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x2c3e50,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      for (let i = 0; i < 2; i++) {
+        const fan = new THREE.Mesh(fanGeometry, fanMaterial);
+        fan.position.set(-0.8 + i * 1.2, -0.5, 0.3);
+        fan.rotation.x = Math.PI / 2;
+        fan.castShadow = true;
+        pcCase.add(fan);
       }
-      
-      // If we can't find actual computer component models, throw an error
-      throw new Error('No realistic computer component models available. Please provide actual 3D models of computer parts.');
+
+      // RAM - make it taller and more visible
+      const ramGeometry = new THREE.BoxGeometry(0.4, 2.0, 0.15);
+      const ramMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x0000ff, // Bright blue
+        metalness: 0.4,
+        roughness: 0.6
+      });
+      const ramMesh = new THREE.Mesh(ramGeometry, ramMaterial);
+      ramMesh.position.set(-1.8, 0, 0.5);
+      ramMesh.castShadow = true;
+      ramMesh.receiveShadow = true;
+      pcCase.add(ramMesh);
+      ramModel = ramMesh;
+
+      // Second RAM stick
+      const ram2Mesh = new THREE.Mesh(ramGeometry, ramMaterial);
+      ram2Mesh.position.set(-1.4, 0, 0.5);
+      ram2Mesh.castShadow = true;
+      pcCase.add(ram2Mesh);
+
+      // Storage - make it larger and more visible
+      const storageGeometry = new THREE.BoxGeometry(2.0, 0.15, 1.0);
+      const storageMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xffff00, // Bright yellow
+        metalness: 0.5,
+        roughness: 0.5
+      });
+      const storageMesh = new THREE.Mesh(storageGeometry, storageMaterial);
+      storageMesh.position.set(0, 1.2, 0.5);
+      storageMesh.castShadow = true;
+      storageMesh.receiveShadow = true;
+      pcCase.add(storageMesh);
+      storageModel = storageMesh;
+
+      // Power supply - make it more visible
+      const psuGeometry = new THREE.BoxGeometry(1.5, 1.0, 2.0);
+      const psuMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x7f8c8d,
+        metalness: 0.7,
+        roughness: 0.3
+      });
+      const psuMesh = new THREE.Mesh(psuGeometry, psuMaterial);
+      psuMesh.position.set(-2.2, -0.8, 0);
+      psuMesh.castShadow = true;
+      pcCase.add(psuMesh);
+
+      // Motherboard - make it larger
+      const motherboardGeometry = new THREE.BoxGeometry(4.0, 0.15, 3.0);
+      const motherboardMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x34495e,
+        metalness: 0.2,
+        roughness: 0.8
+      });
+      const motherboardMesh = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
+      motherboardMesh.position.set(0, 0, 0.3);
+      motherboardMesh.castShadow = true;
+      pcCase.add(motherboardMesh);
       
     } catch (error) {
-      console.error('Failed to load online 3D models:', error);
-      throw new Error('Failed to load realistic computer component models. The current models are too low quality and boxy. Please provide actual 3D models of computer parts.');
+      console.error('Failed to create realistic models:', error);
+      // Fallback to basic geometric shapes
+      createFallbackModels();
     }
+  }
+
+  function createFallbackModels() {
+    // CPU with heatsink - make it larger
+    const cpuGeometry = new THREE.BoxGeometry(1.0, 1.0, 0.2);
+    const cpuMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x00ff00, // Bright green
+      metalness: 0.8,
+      roughness: 0.2
+    });
+    const cpuMesh = new THREE.Mesh(cpuGeometry, cpuMaterial);
+    cpuMesh.position.set(-1, 0.5, 0.5);
+    cpuMesh.castShadow = true;
+    cpuMesh.receiveShadow = true;
+    pcCase.add(cpuMesh);
+    cpuModel = cpuMesh;
+
+    // CPU heatsink
+    const heatsinkGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.4);
+    const heatsinkMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x8B4513,
+      metalness: 0.3,
+      roughness: 0.7
+    });
+    const heatsinkMesh = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
+    heatsinkMesh.position.set(-1, 0.5, 0.9);
+    heatsinkMesh.castShadow = true;
+    pcCase.add(heatsinkMesh);
+
+    // GPU with PCB - make it larger
+    const gpuGeometry = new THREE.BoxGeometry(3.0, 0.4, 1.5);
+    const gpuMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xff0000, // Bright red
+      metalness: 0.6,
+      roughness: 0.4
+    });
+    const gpuMesh = new THREE.Mesh(gpuGeometry, gpuMaterial);
+    gpuMesh.position.set(0, -0.5, 0.5);
+    gpuMesh.castShadow = true;
+    gpuMesh.receiveShadow = true;
+    pcCase.add(gpuMesh);
+    gpuModel = gpuMesh;
+
+    // GPU PCB
+    const gpuPcbGeometry = new THREE.BoxGeometry(2.8, 0.1, 1.3);
+    const gpuPcbMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x2c3e50,
+      metalness: 0.2,
+      roughness: 0.8
+    });
+    const gpuPcb = new THREE.Mesh(gpuPcbGeometry, gpuPcbMaterial);
+    gpuPcb.position.set(0, -0.5, 0.5);
+    pcCase.add(gpuPcb);
+
+    // RAM sticks - make them taller
+    const ramGeometry = new THREE.BoxGeometry(0.4, 2.0, 0.15);
+    const ramMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x0000ff, // Bright blue
+      metalness: 0.4,
+      roughness: 0.6
+    });
+    const ramMesh = new THREE.Mesh(ramGeometry, ramMaterial);
+    ramMesh.position.set(-1.8, 0, 0.5);
+    ramMesh.castShadow = true;
+    ramMesh.receiveShadow = true;
+    pcCase.add(ramMesh);
+    ramModel = ramMesh;
+
+    // Second RAM stick
+    const ram2Mesh = new THREE.Mesh(ramGeometry, ramMaterial);
+    ram2Mesh.position.set(-1.4, 0, 0.5);
+    ram2Mesh.castShadow = true;
+    pcCase.add(ram2Mesh);
+
+    // Storage drive - make it larger
+    const storageGeometry = new THREE.BoxGeometry(2.0, 0.15, 1.0);
+    const storageMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffff00, // Bright yellow
+      metalness: 0.5,
+      roughness: 0.5
+    });
+    const storageMesh = new THREE.Mesh(storageGeometry, storageMaterial);
+    storageMesh.position.set(0, 1.2, 0.5);
+    storageMesh.castShadow = true;
+    storageMesh.receiveShadow = true;
+    pcCase.add(storageMesh);
+    storageModel = storageMesh;
+
+    // Power supply - make it larger
+    const psuGeometry = new THREE.BoxGeometry(1.5, 1.0, 2.0);
+    const psuMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x7f8c8d,
+      metalness: 0.7,
+      roughness: 0.3
+    });
+    const psuMesh = new THREE.Mesh(psuGeometry, psuMaterial);
+    psuMesh.position.set(-2.2, -0.8, 0);
+    psuMesh.castShadow = true;
+    pcCase.add(psuMesh);
+
+    // Motherboard - make it larger
+    const motherboardGeometry = new THREE.BoxGeometry(4.0, 0.15, 3.0);
+    const motherboardMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x34495e,
+      metalness: 0.2,
+      roughness: 0.8
+    });
+    const motherboardMesh = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
+    motherboardMesh.position.set(0, 0, 0.3);
+    motherboardMesh.castShadow = true;
+    pcCase.add(motherboardMesh);
   }
 
 
@@ -167,25 +402,25 @@
       case 'cpu':
         if (cpuModel) {
           color = getScoreColor(components.cpu.cinebenchR23, 15000);
-          (cpuModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+          (cpuModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
         }
         break;
       case 'gpu':
         if (gpuModel) {
           color = getScoreColor(components.gpu.gamingFPS, 160);
-          (gpuModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+          (gpuModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
         }
         break;
       case 'ram':
         if (ramModel) {
           color = getScoreColor(components.ram.aida64, 58000);
-          (ramModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+          (ramModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
         }
         break;
       case 'storage':
         if (storageModel) {
           color = getScoreColor(components.storage.crystalDiskMark, 7000);
-          (storageModel.material as THREE.MeshLambertMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
+          (storageModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
         }
         break;
     }
@@ -456,9 +691,11 @@
     selectedComponents[type] = index;
     components[type] = componentOptions[type][index];
     calculatePerformance();
+    updateComponentModel(type);
   }
 
-  // Initialize performance calculation - moved to client-side
+  // Initialize performance calculation
+  calculatePerformance();
 
   // Get performance color based on score
   function getScoreColor(score: number, maxScore: number = 1000) {
