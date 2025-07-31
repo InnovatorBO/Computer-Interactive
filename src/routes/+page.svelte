@@ -233,7 +233,7 @@
 </script>
 
 <svelte:head>
-  <title>Home Page</title>
+  <title>Welcome to the Thinking Machine</title>
 </svelte:head>
 
 <div bind:this={container} class="three-container"></div>
