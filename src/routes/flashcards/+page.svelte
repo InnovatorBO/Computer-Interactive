@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { tick } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { tick } from 'svelte';
 
-    let title = 'Flashcards Page';
+  // Your flashcard data and logic from first snippet here
+  // (omitted here for brevity; just reuse your original code)
+ let title = 'Flashcards Page';
 
     type Flashcard = {
         question: string;
@@ -97,140 +99,213 @@
         onDestroy(() => {
             window.removeEventListener('keydown', handleKeyDown);
         });
-
+  let showCards = false;
+  const flashcardImages = Array.from({ length: 20 }, (_, i) => `/flashcards${i + 1}.png`);
+  function toggleCards() {
+    showCards = !showCards;
+  }
 </script>
 
-<svelte:head>
-    <title>{title}</title>
-</svelte:head>
-
 <div class="page-container">
-    <h1>Flashcards</h1>
-</div>
+  <h1>Flashcards</h1>
 
-<div class="flashcards-container">
+  <!-- Main Flashcard Viewer -->
+  <div class="flashcards-container">
     <div class="flashcards-content" on:click={flipCard}>
-        <div class="flashcard-inner" class:flipped={showAnswer}>
-            <div class="flashcard-front">
-                <p>{flashcards[currentCardIndex].question}</p>
-            </div>
-            <div class="flashcard-back">
-                <p>{flashcards[currentCardIndex].answer}</p>
-            </div>
+      <div class="flashcard-inner" class:flipped={showAnswer}>
+        <div class="flashcard-front">
+          <p>{flashcards[currentCardIndex].question}</p>
         </div>
+        <div class="flashcard-back">
+          <p>{flashcards[currentCardIndex].answer}</p>
+        </div>
+      </div>
     </div>
     <div class="flashcards-buttons">
-        <button class="prev-btn" on:click={prevCard}>Back</button>
-        <button class="next-btn" on:click={nextCard}>Next</button>
-        <button class="reset-btn" on:click={resetCards}>Reset</button>
+      <button class="prev-btn" on:click={prevCard}>Back</button>
+      <button class="next-btn" on:click={nextCard}>Next</button>
+      <button class="reset-btn" on:click={resetCards}>Reset</button>
     </div>
+  </div>
+
+    <hr class="divider" />
+
+  <div class="flashcards-grid-container">
+    <button class="toggle-button" on:click={toggleCards}>
+      Terms in this set
+      <span class="arrow">{showCards ? '▾' : '▸'}</span>
+    </button>
+
+    {#if showCards}
+      <div class="flashcards-grid">
+        {#each flashcardImages as src}
+          <div class="flashcard-item">
+            <img src={src} alt="Flashcard" />
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
+  /* Page container */
+  .page-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
 
-    .page-container {
-        min-height: 150px;
-        color: white;
-        font-size: 2.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
 
-    .flashcards-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin-top: 20px;
-        margin-bottom: 50px;
-    }
+  /* Flashcards container (main) */
+  .flashcards-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+  }
 
-    .flashcards-content {
-        margin-top: 2rem;
-        padding: 2rem;
-        transition: transform 0.3s ease;
-        text-align: center;
-        font-size: 1.5rem;
-        perspective: 1000px;
-        width: 500px;
-        height: 300px;
-        cursor: pointer;
-    }
+  .flashcards-content {
+    width: 500px;
+    height: 300px;
+    perspective: 1000px;
+    cursor: pointer;
+    padding: 2rem;
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+    text-align: center;
+  }
 
-    .flashcards-content:hover {
-        transform: scale(1.02);
-    }
+  .flashcards-content:hover {
+    transform: scale(1.02);
+  }
 
-    .flashcard-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        transition: transform 0.5s;
-        transform-style: preserve-3d;
-    }
+  /* Flashcard flip */
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+  }
 
-    .flashcard-inner.flipped {
-        transform: rotateY(180deg);
-    }
+  .flashcard-inner.flipped {
+    transform: rotateY(180deg);
+  }
 
-    .flashcard-front, .flashcard-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        background: linear-gradient(135deg, #0497ad, #02c75b);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 4px solid #fff;
-        border-radius: 12px;
-        font-size: 1.5rem;
-        padding: 1rem;
-    }
+  .flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    border: 4px solid white;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    backface-visibility: hidden;
+  }
 
-    .flashcard-back {
-        background: #3c46a6;
-        transform: rotateY(180deg);
-    }
-    .flashcards-buttons {
-        display: flex;
-        gap: 1rem;
-    }
-    
-    .prev-btn, .next-btn {
-        margin-top: 1rem;
-        padding: 0.75rem 1.5rem;
-        background: #3a8dd4;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        flex: 1;
-    }
+  .flashcard-front {
+    background: linear-gradient(135deg, #0497ad, #02c75b);
+  }
 
-    .reset-btn {
-        margin-top: 1rem;
-        padding: 0.75rem 1.5rem;
-        background: #6c757d;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        flex: 1;
-    }
+  .flashcard-back {
+    background: #3c46a6;
+    transform: rotateY(180deg);
+  }
 
-    .prev-btn:hover, .next-btn:hover {
-        background: #2f75b5
-    }
+  /* Buttons for main flashcards */
+  .flashcards-buttons {
+    display: flex;
+    gap: 1rem;
+    width: 500px;
+    margin-top: 1rem;
+  }
 
-    h1 {
-        font-size: 2.5rem;
-        margin-top: 2.5rem;
-    }
+  .prev-btn, .next-btn, .reset-btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+  }
 
+  .prev-btn, .next-btn {
+    background: #3a8dd4;
+  }
+
+  .reset-btn {
+    background: #6c757d;
+  }
+
+  .prev-btn:hover, .next-btn:hover {
+    background: #2f75b5;
+  }
+
+  /* Flashcards grid container (bottom) */
+  .flashcards-grid-container {
+    width: 100%;
+  }
+
+  /* Toggle button style */
+  .toggle-button {
+    background: linear-gradient(135deg, #0497ad, #02c75b);
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s ease-in-out;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .toggle-button:hover {
+    background: #305bb5;
+  }
+
+  .arrow {
+    font-size: 1.2rem;
+  }
+
+  /* Grid of smaller flashcards */
+  .flashcards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .flashcard-item img {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+    margin: 30px 0;
+    width: 100%;
+    max-width: 600px; 
+    align-self: center;
+  }
 </style>
