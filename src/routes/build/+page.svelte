@@ -26,18 +26,32 @@
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
+    const processorGroup = new THREE.Group()
 
     loader = new GLTFLoader();
+
     let model;
     // add sample objects to drag
     loader.load('cube.glb', (gltf) => {
       model = gltf.scene;
       scene.add(model);
       objects.push(model);
+    });
+
+    let model2;
+    loader.load('Microprocessor.glb', (gltf) => {
+      model2 = gltf.scene;
+      model2.traverse((child) => {
+        if (child.isMesh) {
+          processorGroup.add(child.clone());
+        }
+      });
+      scene.add(processorGroup)
+      objects.push(processorGroup)
     });
 
     // controls

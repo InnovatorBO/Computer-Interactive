@@ -6,7 +6,12 @@
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
-    import { normalizeUrl } from '@sveltejs/kit';
+  import { normalizeUrl } from '@sveltejs/kit';
+  import { writable } from 'svelte/store';
+  export const modelState = writable({
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 }
+  });
 
   let container;  // Reference to the div containing the canvas
   let selectedObject = null;
@@ -44,6 +49,32 @@
   let ssd = ["SSD"]
   let ssdHighlight = ["SSD"]
   let ssdText = 'Solid-state drive/Hard Drive - Stores memory long-term'
+  let gpuLeftFan = ["pCube986", "pCube989", "pCube991", "pCube992", "pCube993", "pCube996", "pCube997", "pCube1178", "pCube1180", "pCube1185", "pCube1186", "pCube1188", "pCube1189", "pCylinder159", "pCylinder156"]
+  let gpuLeftFanHighlight = ["pCylinder156"]
+  let gpuLeftFanText = "GPU Left Fan - Cools down GPU"
+  let gpuRightFan = ["pCube987", "pCube988", "pCube990", "pCube994", "pCube995", "pCube998", "pCube1179", "pCube1181", "pCube1182", "pCube1183", 'pCube1184', "pCube1187", "pCube1190", "pCylinder161", "pCylinder160"]
+  let gpuRightFanHighlight = ['pCylinder160']
+  let gpuRightFanText = "GPU Right Fan - Cools down GPU"
+  let nozzle = ["pCylinder187", "pCylinder197", "pCylinder199", "pCylinder200", "pCylinder201", "pCylinder202", "pCylinder203", "pCylinder204", 'pCylinder205', "Mesh1032", "Mesh1030_1", "Mesh1032_1", "Mesh1030", "Mesh1028"]
+  let nozzleHighlight = ["pCylinder187", "pCylinder203", "pCylinder204", "Mesh1032", "pCylinder201", "pCylinder197", "pCylinder200", "Mesh1028"]
+  let nozzleText = "Nozzle - used for refills? idk"
+  let reservoir = ["Resevoir", "pCylinder206", "pCylinder172", "pCylinder176", "pCube1224", "pCube1225"]
+  let reservoirHighlight = ["Resevoir", "pCylinder176", "pCube1224", "pCube1225"]
+  let reservoirText = "Reservoir - main water storage/source"
+  let pump = ['pCylinder169', "pCube1215", "pCube1216", "pCube1204", "pCube1205", "pCube1206", "pCube1207", "pCube1208", "pCube1209", "pCube1210", "pCube1211", "pCube1212", "pCube1213"]
+  let pumpHighlight = ["pCylinder169", "pCube1215", "pCube1216"]
+  let pumpText = "Pump - circulates coolant throughout PC"
+  let tube1 = ["pCylinder188", "pCylinder192", "pCylinder191", "Mesh1018", "Mesh1019"]
+  let tube1Highlight = ['pCylinder188', 'pCylinder192', 'pCylinder191', "Mesh1018", "Mesh1019"]
+  let tube1Text = "Tubing - carries coolant to maintain healthy PC temperature"
+  let tube2 = ["pCylinder190", "pCylinder193", "pCylinder194", "Mesh1021", "Mesh1020"]
+  let tube2Highlight = ['pCylinder190', 'pCylinder193', 'pCylinder194', "Mesh1021", "Mesh1020"]
+  let tube2Text = "Tubing - carries coolant to maintain healthy PC temperature"
+  let tube3 = ["pCylinder189", "pCylinder195", "pCylinder199", "Mesh1029", "Mesh1022"]
+  let tube3Highlight = ['pCylinder189', 'pCylinder195', 'pCylinder199', "Mesh1022", "Mesh1029"]
+  let tube3Text = "Tubing - carries coolant to maintain healthy PC temperature"
+  let motherBoardText = "Motherboard - connects most other components - contains CPU socket, RAM socket, power connectors, storage connectors, internal conenctors, and voltage regulator modules."
+  let motherBoardHighlight = ["pCube511", "pCube476"]
   onMount(() => {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x384454);
@@ -94,6 +125,18 @@
         if (child.isMesh) {
           clickableObjects.push(child);
         }
+      });
+      // Restore saved state
+      const unsubscribe = modelState.subscribe(state => {
+      if (model) {
+        model.position.set(state.position.x, state.position.y, state.position.z);
+        model.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z);
+        }
+      });
+
+      // Make sure to clean up when component is destroyed
+      onDestroy(() => {
+      unsubscribe();
       });
     });
 
@@ -147,7 +190,7 @@
           infoText = ramText
           let highlight = clickableObjects.filter(n => ramHighlight.includes(n.name))
           selectedObject = highlight
-        } else if (clicked.name.slice(0,5) == "pCube" && 1000 <= parseInt(clicked.name.slice(5), 10) && parseInt(clicked.name.slice(5), 10) <= 1177 || clicked.name == "pCube1239" || clicked.name == "pCube1240" || clicked.name == "pCube1241" || clicked.name == "pCylinder156" || clicked.name == "pCylinder160") {
+        } else if (clicked.name.slice(0,5) == "pCube" && 1000 <= parseInt(clicked.name.slice(5), 10) && parseInt(clicked.name.slice(5), 10) <= 1177 || clicked.name == "pCube1239" || clicked.name == "pCube1240" || clicked.name == "pCube1241") {
           infoText = gpuText
           let highlight = clickableObjects.filter(n => gpuHighlight.includes(n.name))
           selectedObject = highlight
@@ -155,9 +198,42 @@
           infoText = ssdText
           let highlight = clickableObjects.filter(n => ssdHighlight.includes(n.name))
           selectedObject = highlight
+        } else if (gpuLeftFan.includes(clicked.name)) {
+          infoText = gpuLeftFanText
+          let highlight = clickableObjects.filter(n => gpuLeftFanHighlight.includes(n.name))
+          selectedObject = highlight
+        } else if (gpuRightFan.includes(clicked.name)) {
+          infoText = gpuRightFanText
+          let highlight = clickableObjects.filter(n => gpuRightFanHighlight.includes(n.name))
+          selectedObject = highlight
+        } else if (nozzle.includes(clicked.name)) {
+          infoText = nozzleText
+          let highlight = clickableObjects.filter(n => nozzleHighlight.includes(n.name))
+          selectedObject = highlight
+        } else if (reservoir.includes(clicked.name)) {
+          infoText = reservoirText
+          let highlight = clickableObjects.filter(n => reservoirHighlight.includes(n.name))
+          selectedObject = highlight
+        } else if (pump.includes(clicked.name)) {
+          infoText = pumpText
+          let highlight = clickableObjects.filter(n => pumpHighlight.includes(n.name))
+          selectedObject = highlight 
+        } else if (tube1.includes(clicked.name)) {
+          infoText = tube1Text
+          let highlight = clickableObjects.filter(n => tube1Highlight.includes(n.name))
+          selectedObject = highlight
+        } else if (tube2.includes(clicked.name)) {
+          infoText = tube2Text
+          let highlight = clickableObjects.filter(n => tube2Highlight.includes(n.name))
+          selectedObject = highlight
+        } else if (tube3.includes(clicked.name)) {
+          infoText = tube3Text
+          let highlight = clickableObjects.filter(n => tube3Highlight.includes(n.name))
+          selectedObject = highlight
         } else {
-          infoText = clicked.name || 'Clicked object';
-          selectedObject = [clicked]
+          infoText = motherBoardText;
+          let highlight = clickableObjects.filter(n => motherBoardHighlight.includes(n.name))
+          selectedObject = highlight
         }
         infoLeft = event.clientX;
         infoTop = event.clientY;
@@ -176,9 +252,29 @@
       controls.update();
       outlinePass.selectedObjects = selectedObject ?? [];
       composer.render();
+      if (model) {
+      modelState.set({
+      position: {
+        x: model.position.x,
+        y: model.position.y,
+        z: model.position.z
+      },
+      rotation: {
+        x: model.rotation.x,
+        y: model.rotation.y,
+        z: model.rotation.z
+      }
+      });
+      }
     }
     animate();
 
+   modelState.subscribe(state => {
+    if (model) {
+      model.position.set(state.position.x, state.position.y, state.position.z);
+      model.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z);
+      }
+    });
     // Resize handling
     window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
