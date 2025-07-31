@@ -46,7 +46,7 @@
   let ssdText = 'Solid-state drive/Hard Drive - Stores memory long-term'
   onMount(() => {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+    scene.background = new THREE.Color(0x384454);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 2, 5);

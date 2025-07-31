@@ -15,6 +15,7 @@
   onMount(() => {
     // scene setup
     scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x384454);
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.z = 5;
 
