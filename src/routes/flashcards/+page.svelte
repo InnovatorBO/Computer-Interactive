@@ -111,21 +111,10 @@
 
 <div class="page-container">
   <h1>Flashcards</h1>
-  <h1>Flashcards</h1>
 
   <!-- Main Flashcard Viewer -->
   <div class="flashcards-container">
-  <!-- Main Flashcard Viewer -->
-  <div class="flashcards-container">
     <div class="flashcards-content" on:click={flipCard}>
-      <div class="flashcard-inner" class:flipped={showAnswer}>
-        <div class="flashcard-front">
-          <p>{flashcards[currentCardIndex].question}</p>
-        </div>
-        <div class="flashcard-back">
-          <p>{flashcards[currentCardIndex].answer}</p>
-        </div>
-      </div>
       <div class="flashcard-inner" class:flipped={showAnswer}>
         <div class="flashcard-front">
           <p>{flashcards[currentCardIndex].question}</p>
@@ -165,13 +154,22 @@
 </div>
 
 <style>
+
+  :global(html, body) {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #304357;
+    color: white;
+  }
+
   /* Page container */
   .page-container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
     color: white;
-    font-family: system-ui, sans-serif;
+    font-family: 'system-ui', sans-serif;
   }
 
   h1 {
@@ -199,32 +197,11 @@
     transition: transform 0.3s ease;
     text-align: center;
   }
-  .flashcards-content {
-    width: 500px;
-    height: 300px;
-    perspective: 1000px;
-    cursor: pointer;
-    padding: 2rem;
-    font-size: 1.5rem;
-    transition: transform 0.3s ease;
-    text-align: center;
-  }
 
   .flashcards-content:hover {
     transform: scale(1.02);
   }
-  .flashcards-content:hover {
-    transform: scale(1.02);
-  }
 
-  /* Flashcard flip */
-  .flashcard-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.5s;
-    transform-style: preserve-3d;
-  }
   /* Flashcard flip */
   .flashcard-inner {
     position: relative;
@@ -238,23 +215,6 @@
     transform: rotateX(180deg);
   }
 
-  .flashcard-front, .flashcard-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    border: 4px solid white;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    backface-visibility: hidden;
-  }
-
-  .flashcard-front {
-    background: linear-gradient(135deg, #0497ad, #02c75b);
-  }
   .flashcard-front, .flashcard-back {
     position: absolute;
     width: 100%;
@@ -292,7 +252,7 @@
     margin-top: 1rem;
     padding: 0.75rem 1.5rem;
     background: #000;
-    color: #e8ffee;
+    color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
