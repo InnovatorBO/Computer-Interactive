@@ -3,7 +3,6 @@
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-  // Function for CTA button
   function handleHomeAction() {
     console.log('Home action triggered');
   }
@@ -241,7 +240,7 @@
 
 <div class="main-content">
   <h1>Home Page</h1>
-  <p>Description/about the product</p>
+  <p>The Thinking Machine is an interactive website designed to help users explore and learn about the components of a computer in an engaging way.</p>
   <a href="/learn" class="cta-button">Go to Product</a>
 </div>
 
@@ -262,34 +261,35 @@
   }
 
   .main-content {
-    flex: 1;
-    background: rgba(48, 69, 88, 0.35); 
-    backdrop-filter: blur(8px); 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 300px 20px;
-    text-align: center;
-    z-index: 1;
-  }
+  flex: 1;
+  background: rgba(48, 69, 88, 0.35); 
+  backdrop-filter: blur(8px); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 300px 20px;
+  text-align: center;
+  z-index: 1;
+}
 
-  .main-content h1 {
-    color: white;
-    font-size: 4rem;
-    font-weight: 300;
-    margin-bottom: 2rem;
-    letter-spacing: 2px;
-  }
+.main-content h1 {
+  color: white;
+  font-size: 4rem;
+  font-weight: 300;
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+}
 
-  .main-content p {
-    color: white;
-    font-size: 2rem;
-    font-weight: 300;
-    margin-bottom: 3rem;
-    opacity: 0.9;
-  }
-
+.main-content p {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 300;
+  margin-bottom: 3rem;
+  opacity: 0.9;
+  max-width: 700px;
+  text-align: center; 
+}
   .cta-button {
     background: linear-gradient(135deg, #0497ad, #02c75b);
     color: #2c3e50;
