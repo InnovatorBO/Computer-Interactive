@@ -1,89 +1,95 @@
-<script lang='ts'>
-    let computerComponents = [
-    { id: 1, name: 'CPU', icon: '🧠' },
-    { id: 2, name: 'GPU', icon: '🎮' },
-    { id: 3, name: 'RAM', icon: '💾' },
-  ];
-  let droppedItems = []
+<script>
+  import { onMount } from 'svelte';
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+  import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
+    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-  function onDragStart(event, item) {
-    event.dataTransfer.setData('application/json', JSON.stringify(item));
-  }
+  let container;
+  let scene, camera, renderer, loader;
+  let orbitControls, dragControls;
+  let enableOrbit = true; // default mode
 
-  function onDrop(event) {
-    event.preventDefault();
-    const data = event.dataTransfer.getData('application/json')
-    if (data) {
-        const item = JSON.parse(data);
-        droppedItems = [...droppedItems, item];
+  let objects = []; // the objects you want to drag
+
+  onMount(() => {
+    // scene setup
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x384454);
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 5;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+
+
+    loader = new GLTFLoader();
+    let model;
+    // add sample objects to drag
+    loader.load('cube.glb', (gltf) => {
+      model = gltf.scene;
+      scene.add(model);
+      objects.push(model);
+    });
+
+    // controls
+    orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.enabled = enableOrbit;
+
+    dragControls = new DragControls(objects, camera, renderer.domElement);
+    dragControls.enabled = !enableOrbit;
+
+    dragControls.addEventListener('dragstart', () => {
+      orbitControls.enabled = false;
+    });
+    dragControls.addEventListener('dragend', () => {
+      if (enableOrbit) orbitControls.enabled = true;
+    });
+
+    // animate loop
+    function animate() {
+      requestAnimationFrame(animate);
+      if (enableOrbit) orbitControls.update();
+      renderer.render(scene, camera);
     }
+    animate();
+
+    window.addEventListener('resize', onWindowResize);
+    dragControls.addEventListener('dragend', (event) => {
+      const obj = event.object;
+      objects.forEach(other => {
+      if (other !== obj) {
+        const dist = obj.position.distanceTo(other.position);
+        if (dist < 0.5) { // snap threshold
+          obj.position.copy(other.position);
+        }
+      }
+     });
+    });
+  });
+
+  function onWindowResize() {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function onDragOver(event) {
-    event.preventDefault();
+  function toggleControls() {
+    enableOrbit = !enableOrbit;
+    orbitControls.enabled = enableOrbit;
+    dragControls.enabled = !enableOrbit;
   }
 </script>
 
-<style>
-  .container {
-    display: flex;
-    height: 300px;
-    border: 2px solid #ccc;
-  }
-  .sidebar {
-    width: 150px;
-    border-right: 2px solid #ccc;
-    padding: 1rem;
-    background: #f9f9f9;
-  }
-  .sidebar-item {
-    cursor: grab;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    text-align: center;
-    user-select: none;
-    font-size: 1.5rem;
-  }
-  .drop-area {
-    flex-grow: 1;
-    padding: 1rem;
-    background: #fff;
-  }
-  .dropped-item {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-</style>
-
-<div class="container">
-  <div class="sidebar">
-    <h3>Parts</h3>
-    {#each computerComponents as item}
-      <div
-        class="sidebar-item"
-        draggable="true"
-        on:dragstart={(e) => onDragStart(e, item)}
-        title={item.name}
-      >
-        {item.icon}
-        <div style="font-size: 0.8rem;">{item.name}</div>
-      </div>
-    {/each}
-  </div>
-
-  <div
-    class="drop-area"
-    on:drop={onDrop}
-    on:dragover={onDragOver}
-  >
-    <h3>Your Build</h3>
-    {#if droppedItems.length === 0}
-      <p>Drag parts here</p>
-    {/if}
-    {#each droppedItems as ditem (ditem.id)}
-      <div class="dropped-item" title={ditem.name}>{ditem.icon} {ditem.name}</div>
-    {/each}
-  </div>
-</div>
+<div bind:this={container} style="width: 100%; height: 500px;"></div>
+<button on:click={toggleControls}>
+  {enableOrbit ? 'Switch to Drag Mode' : 'Switch to Orbit Mode'}
+</button>
