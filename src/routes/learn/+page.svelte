@@ -28,20 +28,21 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="page-container">
-  <h1>Explore</h1>
+  <h1>Learn</h1>
 </div>
 
 <div class="explore-container">
   <div class="main-content">
     <div class="sidebar">
-      <button class="info-button" on:click={() => showPopup('cpu')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for info</button>
-      <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for info</button>
+      <button class="info-button" on:click={() => showPopup('cpu')}>▼ Click for CPU info</button>
+      <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for RAM info</button>
+      <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for GPU info</button>
+      <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for Storage info</button>
     </div>
     
     <div class="computer-display">
       <div class="computer-interior">
+        <img src="/comp.png" alt="Computer interior background" class="background-image" />
         <div class="cables">
           <div class="cable cable1"></div>
           <div class="cable cable2"></div>
@@ -119,12 +120,14 @@
   }
 
   :global(html, body) {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
     font-family: Arial, sans-serif;
+}
+
+.explore-container {
+    min-height: 100vh;
+    width: 100%;
     background: #304357;
-  }
+}
 
   .page-container {
     position: absolute;
@@ -215,7 +218,7 @@
     border-radius: 15px;
     padding: 20px;
     width: 600px;
-    height: 450px;
+    height: 600px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
   }
@@ -224,6 +227,10 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(45deg, #2c3e50, #34495e);
+    background-image: url('/comp.png'); 
+    background-size: cover;  
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 10px;
     position: relative;
     overflow: hidden;
@@ -231,6 +238,17 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 20px;
+  }
+
+  .background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0.3;  
   }
 
   .component {
@@ -248,6 +266,7 @@
     font-size: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
+    z-index: 1;  
   }
 
   .component:hover {
