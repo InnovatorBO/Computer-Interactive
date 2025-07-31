@@ -8,7 +8,7 @@
       <a href="/" class:active={$page.url.pathname === '/'}>Home</a>
       <a href="/learn" class:active={$page.url.pathname === '/learn'}>Learn</a>
       <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
-      <a href="/game" class:active={$page.url.pathname.toString() === '/game'}>Game</a>
+      <a href="/game_page" class:active={$page.url.pathname === '/game_page'}>Game</a>
       <a href="/flashcards" class:active={$page.url.pathname === '/flashcards'}>Flashcards</a>
     </div>
   </nav>
