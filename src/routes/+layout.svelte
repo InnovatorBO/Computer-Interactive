@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
 </script>
 
 <div class="page-wrapper">
@@ -10,6 +9,7 @@
       <a href="/learn" class:active={$page.url.pathname === '/learn'}>Learn</a>
       <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
       <a href="/game_page" class:active={$page.url.pathname === '/game_page'}>Game</a>
+      <a href="/flashcards" class:active={$page.url.pathname === '/flashcards'}>Flashcards</a>
     </div>
   </nav>
 
@@ -18,7 +18,7 @@
   </main>
 
   <footer class="footer">
-    <p>Stuff about branchout and copyright and credits and everything legal</p>
+    <p>© 2025 Branchout – Credits, copyright and legal stuff</p>
   </footer>
 </div>
 
@@ -26,11 +26,6 @@
   :global(html, body) {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    height: 100%;
-  }
-
-  :global(#svelte) {
     height: 100%;
   }
 
@@ -42,32 +37,24 @@
 
   .nav-container {
     padding: 1rem;
-    border-bottom: 1px solid #000000;
-    background: #000000;
+    background: #000;
   }
 
   .nav-links {
     display: flex;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    gap: 1.5rem;
   }
 
   .nav-links a {
     text-decoration: none;
-    color: #ffffff;
+    color: #fff;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-  }
-
-  .nav-links a:hover {
-    background-color: #e9ecef;
+    border-radius: 6px;
+    font-weight: bold;
   }
 
   .nav-links a.active {
-    background-color: linear-gradient(135deg, #0497ad, #02c75b);
-    background: linear-gradient(135deg, #0497ad, #02c75b);
+    background: #02c75b;
     color: white;
   }
 
@@ -76,17 +63,9 @@
   }
 
   .footer {
-    background-color: #000000;
+    background-color: #000;
     color: white;
-    padding: 20px 20px;
     text-align: center;
-  }
-
-  .footer p {
-    font-size: 1.1rem;
-    font-weight: 300;
-    line-height: 1.6;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 1rem;
   }
 </style>

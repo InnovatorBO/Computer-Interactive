@@ -28,7 +28,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="page-container">
-  <h1>Explore</h1>
+  <h1>Learn</h1>
 </div>
 
 <div class="explore-container">
@@ -119,12 +119,14 @@
   }
 
   :global(html, body) {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
     font-family: Arial, sans-serif;
+}
+
+.explore-container {
+    min-height: 100vh;
+    width: 100%;
     background: #304357;
-  }
+}
 
   .page-container {
     position: absolute;
