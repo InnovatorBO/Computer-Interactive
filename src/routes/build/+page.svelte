@@ -1,9 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import * as THREE from 'three';
+  import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
-    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 
   let container;
   let scene, camera, renderer, loader;
@@ -22,6 +25,17 @@
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
+
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const outlinePass = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      scene,
+      camera
+    );
+    composer.addPass(outlinePass);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -43,28 +57,23 @@
     });
 
     let model2;
-    loader.load('Microprocessor.glb', (gltf) => {
+    loader.load('cube.glb', (gltf) => {
       model2 = gltf.scene;
-      model2.traverse((child) => {
-        if (child.isMesh) {
-          processorGroup.add(child.clone());
-        }
-      });
-      scene.add(processorGroup)
-      objects.push(processorGroup)
+      scene.add(model2);
+      objects.push(model2)
     });
 
     // controls
     orbitControls = new OrbitControls(camera, renderer.domElement);
-    orbitControls.enabled = enableOrbit;
 
     dragControls = new DragControls(objects, camera, renderer.domElement);
-    dragControls.enabled = !enableOrbit;
 
-    dragControls.addEventListener('dragstart', () => {
+    dragControls.addEventListener('dragstart', (event) => {
+      outlinePass.selectedObjects = [event.object]
       orbitControls.enabled = false;
     });
     dragControls.addEventListener('dragend', () => {
+      outlinePass.selectedObjects = []
       if (enableOrbit) orbitControls.enabled = true;
     });
 
@@ -72,11 +81,20 @@
     function animate() {
       requestAnimationFrame(animate);
       if (enableOrbit) orbitControls.update();
-      renderer.render(scene, camera);
+      composer.render();
     }
     animate();
 
     window.addEventListener('resize', onWindowResize);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        outlinePass.selectedObjects.forEach(object => {
+          scene.remove(object)
+          objects = objects.filter(n => n != object)
+          dragControls.objects = objects
+        });
+      }
+    });
     dragControls.addEventListener('dragend', (event) => {
       const obj = event.object;
       objects.forEach(other => {
@@ -96,14 +114,89 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function toggleControls() {
-    enableOrbit = !enableOrbit;
-    orbitControls.enabled = enableOrbit;
-    dragControls.enabled = !enableOrbit;
+  function addCPU() {
+    let newModel;
+    loader.load("cylinder.glb", (gltf) => {
+      newModel = gltf.scene;
+      scene.add(newModel);
+      objects.push(newModel);
+      dragControls.objects = objects;
+    });
+  }
+
+  function addRAM() {
+    let newModel;
+    loader.load("sphere.glb", (gltf) => {
+      newModel = gltf.scene;
+      scene.add(newModel);
+      objects.push(newModel);
+      dragControls.objects = objects;
+    });
   }
 </script>
 
+<style>
+  .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 100vh;
+  background-color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  }
+  
+.sidebar button {
+  width: 140px;               /* adjust width inside sidebar */
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  background-color: #34495e; /* slightly lighter */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  }
+
+  .sidebar-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  }
+
+  .sidebar-label {
+  color: #bdc3c7;
+  font-size: 0.9rem;
+  margin: 1rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  }
+
+  .sidebar-title {
+  color: #ecf0f1;      /* light color for contrast */
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: bold;
+  }
+</style>
 <div bind:this={container} style="width: 100%; height: 500px;"></div>
-<button on:click={toggleControls}>
-  {enableOrbit ? 'Switch to Drag Mode' : 'Switch to Orbit Mode'}
-</button>
+<div class="sidebar">
+  <h2 class="sidebar-title">Items for PC</h2>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>CPUs</p>
+    <button on:click={() => addCPU()}>AMD Ryzen 9 9950X3D</button>
+    <button>Intel Core i9-14900K</button>
+  </div>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>RAM</p>
+    <button on:click={() => addRAM()}>Micron DDR5</button>
+    <button>Samsung SDIN5B2-32G</button>
+  </div>
+</div>
