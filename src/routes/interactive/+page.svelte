@@ -739,8 +739,6 @@
 
   <!-- 3D Interactive Model using model-viewer -->
   <div class="model-section">
-    <h2>3D Interactive PC Model</h2>
-    <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
     <div class="model-container">
       <div class="three-js-container" bind:this={canvasContainer}>
         <div class="model-overlay">
