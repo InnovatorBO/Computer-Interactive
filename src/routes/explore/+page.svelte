@@ -338,6 +338,7 @@
   }
 </style>
 
+<h2>Learn about the different parts of a computer by clicking on the model!</h2>
 <div bind:this={container} style="width:100%; height:500px; position:relative;">
   {#if showInfo}
     <div class="info-box" style="left: {infoLeft}px; top: {infoTop}px;">
