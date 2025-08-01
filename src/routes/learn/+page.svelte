@@ -23,7 +23,7 @@
       closePopup();
     }
   }
-
+    
   let quizMode = $state(false);
   let currentQuestion = $state(0);
   let score = $state(0);
@@ -31,8 +31,9 @@
   let selectedAnswer = $state<number | null>(null);
   let quizCompleted = $state(false);
   let showCorrectAnswer = $state(false);
+  let currentQuizQuestions = $state<any[]>([]);
 
-  const quizQuestions = [
+  const questionBank = [
     {
       question: "What is the main function of the CPU?",
       options: [
@@ -90,7 +91,13 @@
     }
   ];
 
+  function selectRandomQuestions() {
+    const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5);
+  }
+
   function startQuiz() {
+    currentQuizQuestions = selectRandomQuestions();
     quizMode = true;
     currentQuestion = 0;
     score = 0;
@@ -99,30 +106,30 @@
     quizCompleted = false;
     showCorrectAnswer = false;
   }
-
+  
   function selectAnswer(answerIndex: number) {
     selectedAnswer = answerIndex;
   }
-
+  
   function submitAnswer() {
-    if (selectedAnswer === null) return;
+      if (selectedAnswer === null) return;
     
-    showCorrectAnswer = true;
+      showCorrectAnswer = true;
     
-    if (selectedAnswer === quizQuestions[currentQuestion].correct) {
-      score++;
-    }
+      if (selectedAnswer === currentQuizQuestions[currentQuestion].correct) {
+        score++;
+      }
   }
-
+  
   function continueToNext() {
-    if (currentQuestion < quizQuestions.length - 1) {
-      currentQuestion++;
-      selectedAnswer = null;
-      showCorrectAnswer = false;
-    } else {
-      showResults = true;
-      quizCompleted = true;
-    }
+    if (currentQuestion < currentQuizQuestions.length - 1) {
+        currentQuestion++;
+        selectedAnswer = null;
+        showCorrectAnswer = false;
+      } else {
+        showResults = true;
+        quizCompleted = true;
+      }
   }
 
   function resetQuiz() {
@@ -133,7 +140,9 @@
     selectedAnswer = null;
     quizCompleted = false;
     showCorrectAnswer = false;
+    currentQuizQuestions = [];
   }
+
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -235,22 +244,22 @@
     {:else if !showResults}
       <div class="quiz-question">
         <div class="quiz-header">
-          <h2>Question {currentQuestion + 1} of {quizQuestions.length}</h2>
+          <h2>Question {currentQuestion + 1} of {currentQuizQuestions.length}</h2>
           <div class="quiz-progress">
             <div class="progress-bar">
-              <div class="progress-fill" style="width: {((currentQuestion + 1) / quizQuestions.length) * 100}%"></div>
+              <div class="progress-fill" style="width: {((currentQuestion + 1) / currentQuizQuestions.length) * 100}%"></div>
             </div>
             <span class="score">Score: {score}/{currentQuestion}</span>
           </div>
         </div>
         
         <div class="question-content">
-          <h3>{quizQuestions[currentQuestion].question}</h3>
+          <h3>{currentQuizQuestions[currentQuestion].question}</h3>
           
           <div class="answer-options">
-            {#each quizQuestions[currentQuestion].options as option, index}
+            {#each currentQuizQuestions[currentQuestion].options as option, index}
               <button 
-                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === quizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== quizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
+                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === currentQuizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== currentQuizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
                 on:click={() => selectAnswer(index)}
                 disabled={showCorrectAnswer}
               >
@@ -261,8 +270,8 @@
           
           {#if showCorrectAnswer}
             <div class="correct-answer">
-              <h4>Correct Answer: {String.fromCharCode(65 + quizQuestions[currentQuestion].correct)}. {quizQuestions[currentQuestion].options[quizQuestions[currentQuestion].correct]}</h4>
-              <p>{quizQuestions[currentQuestion].explanation}</p>
+              <h4>Correct Answer: {String.fromCharCode(65 + currentQuizQuestions[currentQuestion].correct)}. {currentQuizQuestions[currentQuestion].options[currentQuizQuestions[currentQuestion].correct]}</h4>
+              <p>{currentQuizQuestions[currentQuestion].explanation}</p>
             </div>
           {/if}
           
@@ -273,7 +282,7 @@
               </button>
             {:else if showCorrectAnswer}
               <button class="continue-btn" on:click={continueToNext}>
-                {currentQuestion === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                {currentQuestion === currentQuizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
               </button>
             {/if}
           </div>
@@ -284,16 +293,16 @@
         <h2>Quiz Complete!</h2>
         <div class="results-content">
           <div class="score-display">
-            <h3>Your Score: {score}/{quizQuestions.length}</h3>
+            <h3>Your Score: {score}/{currentQuizQuestions.length}</h3>
             <div class="score-percentage">
-              {Math.round((score / quizQuestions.length) * 100)}%
+              {Math.round((score / currentQuizQuestions.length) * 100)}%
             </div>
             <div class="score-message">
-              {#if score === quizQuestions.length}
+              {#if score === currentQuizQuestions.length}
                 Perfect, you're a computer expert! 
-              {:else if score >= quizQuestions.length * 0.8}
+              {:else if score >= currentQuizQuestions.length * 0.8}
                 Great job! 
-              {:else if score >= quizQuestions.length * 0.6}
+              {:else if score >= currentQuizQuestions.length * 0.6}
                 Good work! Keep learning! 
               {:else}
                 Keep studying with our interactive model and flashcards!
@@ -539,6 +548,15 @@
   .help-button:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  .component:focus {
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+  }
+
+  .popup:focus-within {
+    outline: none;
   }
 
   .popup {

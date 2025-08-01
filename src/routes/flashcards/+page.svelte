@@ -14,7 +14,7 @@
       { question: 'Motherboard',
         answer: 'Connects all of the different hardware components and allows them to communicate with each other.'},
       { question: 'Chipset',
-        answer: 'Set of electrical components that manages communication between the ACPU, memory, and peripherals.'},
+        answer: 'Set of electrical components that manages communication between the CPU, memory, and peripherals.'},
       { question: 'Basic Input/Output System (BIOS)', 
         answer: 'Firmware that configures hardware on startup and loads the operating system.'},
       { question: 'Voltage Regulator Module (VRM)', 

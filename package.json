@@ -45,5 +45,8 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"three": "^0.178.0"
+	}
 }
