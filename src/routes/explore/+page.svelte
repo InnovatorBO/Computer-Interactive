@@ -1,11 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { on } from 'svelte/events';
   import * as THREE from 'three';
   import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
   import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
+
+  import { writable } from 'svelte/store';
+  export const modelState = writable({
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 }
+  });
   import { normalizeUrl } from '@sveltejs/kit';
 
   let container;  // Reference to the div containing the canvas
@@ -14,68 +21,106 @@
   let infoText = '';
   let infoLeft = 0;
   let infoTop = 0;
-  let INTERSECTED = null;
-  let computerCase = ["AudioPort1", "AudioPort2", "BackPanel", "GPU_Bracket1", "pCube884", "pCube890", "pCube889", "pCube891", "pCube896", "pCube1200", "pCube1201", "pCube1202", "pCube1203", "pCube1218", "pCube1235", "pCube1236", "pCube1237", "pCylinder97", "pCylinder98", "pCylinder99", "pCylinder100", "pCylinder101", "PowerButton", "PSU_Bracket1", "PSU_Bracket2", "ResetButton", "nurbsToPoly2", "pCube1238"];
-  let computerCaseHighlight = ["BackPanel", "GPU_Bracket1", "pCube884", "pCube890", "pCube889", "pCube891", "pCube896", "pCylinder97", "pCylinder98", "pCylinder99", "pCylinder100", "pCylinder101", "PSU_Bracket1", "PSU_Bracket2"];
-  let computerCaseText = "Computer case - holds parts together and contains ports/buttons";
-  let topFan = ["pCube961", 'pCube962', "pCube963", "pCube964", "pCube965", 'pCube966', "pCube967", "pCylinder145", "pCylinder164", "pCube970", "pCube971", "pCube972", 'pCylinder146']
-  let topFanHighlight = ["pCube970", 'pCylinder146']
-  let topFanText = "Top fan - part of radiator; cools down coolant"
-  let middleFan = ["pCube961001", "pCube962001", "pCube963001", "pCube964001", "pCube965001", "pCube966001", "pCube967001", "pCylinder145001", "pCylinder164001", 'pCube970001', "pCube971001", "pCube972001", "pCylinder146001"]
-  let middleFanHighlight = ["pCube970001", "pCylinder146001"]
-  let middleFanText = "Middle fan - part of radiator; cools down coolant"
-  let bottomFan = ["pCube961002", "pCube962002", "pCube963002", "pCube964002", "pCube965002", "pCube966002", "pCube967002", "pCylinder145002", "pCylinder164002", "pCube970002", "pCube971002", "pCube972002", "pCylinder146002"]
-  let bottomFanHighlight = ["pCube970002", "pCylinder146002"]
-  let bottomFanText = "Bottom fan  - part of radiator; cools down coolant"
-  let cpu = ["pCube840", "pCube841", "pCube1222", "pCube1220", "pCube181", "pCube181", "pCube182", "pCube183", "pCube184", "pCube1219"]
-  let cpuHighlight = ["pCube840", "pCube841", "pCube1222", "pCube1220"]
-  let cpuText = "Central Processing Unit/Water Block - cpu does calculations very fast, water block draws heat into cooling system"
-  let psu = ["pCube961003", "pCube962003", "pCube963003", "pCube964003", "pCube965003", "pCube966003", "pCube967003", "pCylinder145003", "pCube1252", "pCube1253", "pCube1254", "pCube1255", "pCube1256", "pCube1257", "pCube1258", "pCube1259", "pCube1260", "pCube1261", "pCube927", "pCube928", "pCube940", "pCube932", "pCube1242", "pCube1243", "pCube1251", "Mesh1069"]
-  let psuHighlight = ["pCube927", "pCube928", "pCube940", "Mesh1069"]
-  let psuText = "Power Supply Unit - converts between AC/DC and gives correct voltage rails for different components"
-  let radiator = ["pCube1191", "pCube1192", "pCube1193", "pCube1194", "pCube1195", "pCube1196", "pCube1197", "pCube1198", "pCube1199", "pCylinder162", "pCylinder163"]
-  let radiatorHighlight = ['pCube1191']
-  let radiatorText = "Radiator - controls temperature and prevents heat damage"
-  let ram = ["pCube902", 'pCube910', 'pCube911', "pCube912", "pCube913", "pCube914", "pCube915", "pCube916", "pCube917", "pCube918", "pCube919", "pCube920", "pCube902001", "pCube910001", "pCube911001", "pCube912001", "pCube913001", "pCube914001", "pCube915001", "pCube916001", "pCube917001", "pCube918001", "pCube919001", "pCube920001", "pCube902002", "pCube910002", "pCube911002", "pCube912002", "pCube913002", "pCube914002", "pCube915002", "pCube916002", "pCube917002", "pCube918002", "pCube919002", "pCube920002", "pCube902003", "pCube910003", "pCube911003", "pCube912003", "pCube913003", "pCube914003", "pCube915003", "pCube916003", "pCube917003", "pCube918003", "pCube919003", "pCube920003"]
-  let ramHighlight = ["pCube911", "pCube911001", "pCube911002", "pCube911003"]
-  let ramText = "Random-access memory (RAM): Stores information temporarily for easy use"
+
+  const info = [
+    {
+      components: ["AudioPort1", "AudioPort2", "BackPanel", "GPU_Bracket1", "pCube884", "pCube890", "pCube889", "pCube891", "pCube896", "pCube1200", "pCube1201", "pCube1202", "pCube1203", "pCube1218", "pCube1235", "pCube1236", "pCube1237", "pCylinder97", "pCylinder98", "pCylinder99", "pCylinder100", "pCylinder101", "PowerButton", "PSU_Bracket1", "PSU_Bracket2", "ResetButton", "nurbsToPoly2", "pCube1238"],
+      highlights: ["BackPanel", "GPU_Bracket1", "pCube884", "pCube890", "pCube889", "pCube891", "pCube896", "pCylinder97", "pCylinder98", "pCylinder99", "pCylinder100", "pCylinder101", "PSU_Bracket1", "PSU_Bracket2"],
+      text: "Computer case - holds parts together and contains ports/buttons"
+    },
+    {
+      components: ["pCube961", 'pCube962', "pCube963", "pCube964", "pCube965", 'pCube966', "pCube967", "pCylinder145", "pCylinder164", "pCube970", "pCube971", "pCube972", 'pCylinder146'],
+      highlights: ["pCube970", 'pCylinder146'],
+      text: "Top fan - part of radiator; cools down coolant"
+    },
+    {
+      components: ["pCube961001", "pCube962001", "pCube963001", "pCube964001", "pCube965001", "pCube966001", "pCube967001", "pCylinder145001", "pCylinder164001", 'pCube970001', "pCube971001", "pCube972001", "pCylinder146001"],
+      highlights: ["pCube970001", "pCylinder146001"],
+      text: "Middle fan - part of radiator; cools down coolant"
+    },
+    {
+      components: ["pCube961002", "pCube962002", "pCube963002", "pCube964002", "pCube965002", "pCube966002", "pCube967002", "pCylinder145002", "pCylinder164002", "pCube970002", "pCube971002", "pCube972002", "pCylinder146002"],
+      highlights: ["pCube970002", "pCylinder146002"],
+      text: "Bottom fan  - part of radiator; cools down coolant"
+    },
+    {
+      components: ["pCube840", "pCube841", "pCube1222", "pCube1220", "pCube181", "pCube181", "pCube182", "pCube183", "pCube184", "pCube1219"],
+      highlights: ["pCube840", "pCube841", "pCube1222", "pCube1220"],
+      text: "Central Processing Unit/Water Block - cpu does calculations very fast, water block draws heat into cooling system"
+    },
+    {
+      components: ["pCube961003", "pCube962003", "pCube963003", "pCube964003", "pCube965003", "pCube966003", "pCube967003", "pCylinder145003", "pCube1252", "pCube1253", "pCube1254", "pCube1255", "pCube1256", "pCube1257", "pCube1258", "pCube1259", "pCube1260", "pCube1261", "pCube927", "pCube928", "pCube940", "pCube932", "pCube1242", "pCube1243", "pCube1251", "Mesh1069"],
+      highlights: ["pCube927", "pCube928", "pCube940", "Mesh1069"],
+      text: "Power Supply Unit - converts between AC/DC and gives correct voltage rails for different components"
+    },
+    {
+      components: ["pCube1191", "pCube1192", "pCube1193", "pCube1194", "pCube1195", "pCube1196", "pCube1197", "pCube1198", "pCube1199", "pCylinder162", "pCylinder163"],
+      highlights: ['pCube1191'],
+      text: "Radiator - controls temperature and prevents heat damage"
+    },
+    {
+      components: ["pCube902", 'pCube910', 'pCube911', "pCube912", "pCube913", "pCube914", "pCube915", "pCube916", "pCube917", "pCube918", "pCube919", "pCube920", "pCube902001", "pCube910001", "pCube911001", "pCube912001", "pCube913001", "pCube914001", "pCube915001", "pCube916001", "pCube917001", "pCube918001", "pCube919001", "pCube920001", "pCube902002", "pCube910002", "pCube911002", "pCube912002", "pCube913002", "pCube914002", "pCube915002", "pCube916002", "pCube917002", "pCube918002", "pCube919002", "pCube920002", "pCube902003", "pCube910003", "pCube911003", "pCube912003", "pCube913003", "pCube914003", "pCube915003", "pCube916003", "pCube917003", "pCube918003", "pCube919003", "pCube920003"],
+      highlights: ["pCube911", "pCube911001", "pCube911002", "pCube911003"],
+      text: "Random-access memory (RAM): Stores information temporarily for easy use"
+    },
+    {
+      components: ["SSD"],
+      highlights: ["SSD"],
+      text: 'Solid-state drive/Hard Drive - Stores memory long-term'
+    },
+    {
+      components: ["pCube986", "pCube989", "pCube991", "pCube992", "pCube993", "pCube996", "pCube997", "pCube1178", "pCube1180", "pCube1185", "pCube1186", "pCube1188", "pCube1189", "pCylinder159", "pCylinder156"],
+      highlights: ["pCylinder156"],
+      text: "GPU Left Fan - Cools down GPU"
+    },
+    {
+      components: ["pCube987", "pCube988", "pCube990", "pCube994", "pCube995", "pCube998", "pCube1179", "pCube1181", "pCube1182", "pCube1183", 'pCube1184', "pCube1187", "pCube1190", "pCylinder161", "pCylinder160"],
+      highlights:  ['pCylinder160'],
+      text: "GPU Right Fan - Cools down GPU"
+    },
+    {
+      components:  ["pCylinder187", "pCylinder197", "pCylinder199", "pCylinder200", "pCylinder201", "pCylinder202", "pCylinder203", "pCylinder204", 'pCylinder205', "Mesh1032", "Mesh1030_1", "Mesh1032_1", "Mesh1030", "Mesh1028"],
+      highlights: ["pCylinder187", "pCylinder203", "pCylinder204", "Mesh1032", "pCylinder201", "pCylinder197", "pCylinder200", "Mesh1028"],
+      text: "Nozzle - used for refills? idk"
+    },
+    {
+      components:  ["Resevoir", "pCylinder206", "pCylinder172", "pCylinder176", "pCube1224", "pCube1225"],
+      highlights: ["Resevoir", "pCylinder176", "pCube1224", "pCube1225"],
+      text: "Reservoir - main water storage/source"
+    },
+    {
+      components: ['pCylinder169', "pCube1215", "pCube1216", "pCube1204", "pCube1205", "pCube1206", "pCube1207", "pCube1208", "pCube1209", "pCube1210", "pCube1211", "pCube1212", "pCube1213"],
+      highlights: ["pCylinder169", "pCube1215", "pCube1216"],
+      text: "Pump - circulates coolant throughout PC"
+    },
+    {
+      components: ["pCylinder188", "pCylinder192", "pCylinder191", "Mesh1018", "Mesh1019"],
+      highlights: ['pCylinder188', 'pCylinder192', 'pCylinder191', "Mesh1018", "Mesh1019"],
+      text: "Tubing - carries coolant to maintain healthy PC temperature"
+    },
+    {
+      components: ["pCylinder190", "pCylinder193", "pCylinder194", "Mesh1021", "Mesh1020"],
+      highlights: ['pCylinder190', 'pCylinder193', 'pCylinder194', "Mesh1021", "Mesh1020"],
+      text: "Tubing - carries coolant to maintain healthy PC temperature"
+    },
+    {
+      components: ["pCylinder189", "pCylinder195", "pCylinder199", "Mesh1029", "Mesh1022"],
+      highlights: ['pCylinder189', 'pCylinder195', 'pCylinder199', "Mesh1022", "Mesh1029"],
+      text: "Tubing - carries coolant to maintain healthy PC temperature"
+    }
+  ]
   let gpuText = "Graphics Processing Unit - thinks fast and shows images on screen"
   let gpuHighlight = ["pCube1171", "pCube1169", "pCube1000"]
-  let ssd = ["SSD"]
-  let ssdHighlight = ["SSD"]
-  let ssdText = 'Solid-state drive/Hard Drive - Stores memory long-term'
-  let gpuLeftFan = ["pCube986", "pCube989", "pCube991", "pCube992", "pCube993", "pCube996", "pCube997", "pCube1178", "pCube1180", "pCube1185", "pCube1186", "pCube1188", "pCube1189", "pCylinder159", "pCylinder156"]
-  let gpuLeftFanHighlight = ["pCylinder156"]
-  let gpuLeftFanText = "GPU Left Fan - Cools down GPU"
-  let gpuRightFan = ["pCube987", "pCube988", "pCube990", "pCube994", "pCube995", "pCube998", "pCube1179", "pCube1181", "pCube1182", "pCube1183", 'pCube1184', "pCube1187", "pCube1190", "pCylinder161", "pCylinder160"]
-  let gpuRightFanHighlight = ['pCylinder160']
-  let gpuRightFanText = "GPU Right Fan - Cools down GPU"
-  let nozzle = ["pCylinder187", "pCylinder197", "pCylinder199", "pCylinder200", "pCylinder201", "pCylinder202", "pCylinder203", "pCylinder204", 'pCylinder205', "Mesh1032", "Mesh1030_1", "Mesh1032_1", "Mesh1030", "Mesh1028"]
-  let nozzleHighlight = ["pCylinder187", "pCylinder203", "pCylinder204", "Mesh1032", "pCylinder201", "pCylinder197", "pCylinder200", "Mesh1028"]
-  let nozzleText = "Nozzle - used for refills? idk"
-  let reservoir = ["Resevoir", "pCylinder206", "pCylinder172", "pCylinder176", "pCube1224", "pCube1225"]
-  let reservoirHighlight = ["Resevoir", "pCylinder176", "pCube1224", "pCube1225"]
-  let reservoirText = "Reservoir - main water storage/source"
-  let pump = ['pCylinder169', "pCube1215", "pCube1216", "pCube1204", "pCube1205", "pCube1206", "pCube1207", "pCube1208", "pCube1209", "pCube1210", "pCube1211", "pCube1212", "pCube1213"]
-  let pumpHighlight = ["pCylinder169", "pCube1215", "pCube1216"]
-  let pumpText = "Pump - circulates coolant throughout PC"
-  let tube1 = ["pCylinder188", "pCylinder192", "pCylinder191", "Mesh1018", "Mesh1019"]
-  let tube1Highlight = ['pCylinder188', 'pCylinder192', 'pCylinder191', "Mesh1018", "Mesh1019"]
-  let tube1Text = "Tubing - carries coolant to maintain healthy PC temperature"
-  let tube2 = ["pCylinder190", "pCylinder193", "pCylinder194", "Mesh1021", "Mesh1020"]
-  let tube2Highlight = ['pCylinder190', 'pCylinder193', 'pCylinder194', "Mesh1021", "Mesh1020"]
-  let tube2Text = "Tubing - carries coolant to maintain healthy PC temperature"
-  let tube3 = ["pCylinder189", "pCylinder195", "pCylinder199", "Mesh1029", "Mesh1022"]
-  let tube3Highlight = ['pCylinder189', 'pCylinder195', 'pCylinder199', "Mesh1022", "Mesh1029"]
-  let tube3Text = "Tubing - carries coolant to maintain healthy PC temperature"
   let motherBoardText = "Motherboard - connects most other components - contains CPU socket, RAM socket, power connectors, storage connectors, internal conenctors, and voltage regulator modules."
   let motherBoardHighlight = ["pCube511", "pCube476"]
+
+  const toDestroy = []
   onMount(() => {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x384454);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 2, 5);
+    camera.position.set(0, 0.08, 0.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -142,8 +187,18 @@
     function onMouseMove(event) {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      if (down) {
+        showInfo = false
+        selectedObject = null
+      }
     }
     function onClick(event) {
+      if (
+        Math.abs(event.clientX - startX) >= 10 ||
+        Math.abs(event.clientY - startY) >= 10
+      )
+        return;
+
       // Convert mouse coordinates
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -154,83 +209,26 @@
 
       if (intersects.length > 0) {
         const clicked = intersects[0].object;
-        if (computerCase.includes(clicked.name)) {
-          infoText = computerCaseText
-          let highlight = clickableObjects.filter(n => computerCaseHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (topFan.includes(clicked.name)) {
-          infoText = topFanText
-          let highlight = clickableObjects.filter(n => topFanHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (middleFan.includes(clicked.name)) {
-          infoText = middleFanText
-          let highlight = clickableObjects.filter(n => middleFanHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (bottomFan.includes(clicked.name)) {
-          infoText = bottomFanText
-          let highlight = clickableObjects.filter(n => bottomFanHighlight.includes(n.name))
-          selectedObject = highlight 
-        } else if (cpu.includes(clicked.name)) {
-          infoText = cpuText
-          let highlight = clickableObjects.filter(n => cpuHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (psu.includes(clicked.name)) {
-          infoText = psuText
-          let highlight = clickableObjects.filter(n => psuHighlight.includes(n.name))
-          selectedObject = highlight 
-        } else if (radiator.includes(clicked.name)) {
-          infoText = radiatorText
-          let highlight = clickableObjects.filter(n => radiatorHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (ram.includes(clicked.name)) {
-          infoText = ramText
-          let highlight = clickableObjects.filter(n => ramHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (clicked.name.slice(0,5) == "pCube" && 1000 <= parseInt(clicked.name.slice(5), 10) && parseInt(clicked.name.slice(5), 10) <= 1177 || clicked.name == "pCube1239" || clicked.name == "pCube1240" || clicked.name == "pCube1241") {
-          infoText = gpuText
-          let highlight = clickableObjects.filter(n => gpuHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (ssd.includes(clicked.name)) {
-          infoText = ssdText
-          let highlight = clickableObjects.filter(n => ssdHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (gpuLeftFan.includes(clicked.name)) {
-          infoText = gpuLeftFanText
-          let highlight = clickableObjects.filter(n => gpuLeftFanHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (gpuRightFan.includes(clicked.name)) {
-          infoText = gpuRightFanText
-          let highlight = clickableObjects.filter(n => gpuRightFanHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (nozzle.includes(clicked.name)) {
-          infoText = nozzleText
-          let highlight = clickableObjects.filter(n => nozzleHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (reservoir.includes(clicked.name)) {
-          infoText = reservoirText
-          let highlight = clickableObjects.filter(n => reservoirHighlight.includes(n.name))
-          selectedObject = highlight
-        } else if (pump.includes(clicked.name)) {
-          infoText = pumpText
-          let highlight = clickableObjects.filter(n => pumpHighlight.includes(n.name))
-          selectedObject = highlight 
-        } else if (tube1.includes(clicked.name)) {
-          infoText = tube1Text
-          let highlight = clickableObjects.filter(n => tube1Highlight.includes(n.name))
-          selectedObject = highlight
-        } else if (tube2.includes(clicked.name)) {
-          infoText = tube2Text
-          let highlight = clickableObjects.filter(n => tube2Highlight.includes(n.name))
-          selectedObject = highlight
-        } else if (tube3.includes(clicked.name)) {
-          infoText = tube3Text
-          let highlight = clickableObjects.filter(n => tube3Highlight.includes(n.name))
-          selectedObject = highlight
-        } else {
-          infoText = motherBoardText;
-          let highlight = clickableObjects.filter(n => motherBoardHighlight.includes(n.name))
-          selectedObject = highlight
+        let chosen = false
+        for (const { components, highlights, text} of info) {
+          if (components.includes(clicked.name)) {
+            infoText = text
+            selectedObject = clickableObjects.filter(i => highlights.includes(i.name))
+            chosen = true
+            break
+          }
         }
+        if (!chosen) {
+          const num = parseInt(clicked.name.slice(5), 10)
+          if (clicked.name.slice(0,5) == "pCube" && ((num >= 1000 && num <= 1177) || num === 1240 || num === 1241)) {
+            infoText = gpuText
+            selectedObject = clickableObjects.filter(n => gpuHighlight.includes(n.name))
+          } else {
+            infoText = motherBoardText;
+            selectedObject = clickableObjects.filter(n => motherBoardHighlight.includes(n.name))
+          }
+        }
+        
         infoLeft = event.clientX;
         infoTop = event.clientY;
         showInfo = true;
@@ -238,10 +236,29 @@
         showInfo = false;
         selectedObject = null
       }
+
+      down = false
     }
     
-    window.addEventListener('mousemove', onMouseMove, false)
-    renderer.domElement.addEventListener('click', onClick);
+    const canvas = renderer.domElement
+    let startX: number, startY: number, down: boolean;
+    toDestroy.push(
+      on(canvas, "mousedown", (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        down = true;
+      }),
+      on(canvas, "touchstart", (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        down = true;
+      }),
+      on(canvas, "mousemove", onMouseMove),
+      on(canvas, "touchmove", e => onMouseMove(e.touches[0])),
+      on(canvas, "mouseup", onClick),
+      on(canvas, "touchend", (e) => onClick(e.touches[0])
+      )
+    );
 
     function animate() {
       requestAnimationFrame(animate);
@@ -281,6 +298,7 @@
 
 
     return () => {
+      for (const handler of toDestroy) handler()
       renderer.dispose();
       renderer.domElement.removeEventListener('click', onClick);
     };
