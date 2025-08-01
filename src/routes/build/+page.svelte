@@ -86,6 +86,15 @@
     animate();
 
     window.addEventListener('resize', onWindowResize);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        outlinePass.selectedObjects.forEach(object => {
+          scene.remove(object)
+          objects = objects.filter(n => n != object)
+          dragControls.objects = objects
+        });
+      }
+    });
     dragControls.addEventListener('dragend', (event) => {
       const obj = event.object;
       objects.forEach(other => {
