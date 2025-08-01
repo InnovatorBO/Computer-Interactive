@@ -7,11 +7,6 @@
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
   import { normalizeUrl } from '@sveltejs/kit';
-  import { writable } from 'svelte/store';
-  export const modelState = writable({
-    position: { x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 }
-  });
 
   let container;  // Reference to the div containing the canvas
   let selectedObject = null;
@@ -126,15 +121,16 @@
           clickableObjects.push(child);
         }
       });
-      // Restore saved state
-      const unsubscribe = modelState.subscribe(state => {
-      if (model) {
-        model.position.set(state.position.x, state.position.y, state.position.z);
-        model.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z);
-        }
-      });
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxSize = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let cameraZ = Math.abs(maxSize / (2 * Math.tan(fov / 2)));
+      cameraZ *= 0.8;
+      camera.position.set(center.x, center.y, cameraZ);
+      camera.lookAt(center);
 
-      // Make sure to clean up when component is destroyed
       onDestroy(() => {
       unsubscribe();
       });
@@ -298,12 +294,29 @@
 
 <style>
   .info-box {
-    position: absolute;
-    background: white;
-    padding: 0.5em 1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    z-index: 10;
+  position: absolute;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  border: 1px solid #ccc;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: popupSlide 0.3s ease-out;
+  }
+
+  .info-box button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none; 
+  border: none; 
+  padding: 0;     
+  font-size: 1.2em;
+  color: #333;
+  cursor: pointer;
+  outline: none;
   }
 </style>
 
@@ -311,7 +324,7 @@
   {#if showInfo}
     <div class="info-box" style="left: {infoLeft}px; top: {infoTop}px;">
       {infoText}
-      <button on:click={closeInfo}>×</button>
+      <button on:click={closeInfo}>X</button>
     </div>
   {/if}
 </div>
