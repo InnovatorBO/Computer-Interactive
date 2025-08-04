@@ -25,4 +25,3 @@ vite.config.ts.timestamp-*
 
 
 # Ignore large 3D models
-*.glb
