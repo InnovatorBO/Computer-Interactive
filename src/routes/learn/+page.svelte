@@ -1,5 +1,5 @@
 <script lang="ts">
-  let activePopup: string | null = null;
+  let activePopup: string | null = $state(null);
 
   function showPopup(popupId: string): void {
     if (activePopup) {
@@ -379,6 +379,9 @@
       <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for RAM info</button>
       <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for GPU info</button>
       <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for Storage info</button>
+      <button class="info-button" on:click={() => showPopup('psu')}>▼ Click for PSU info</button>
+      <button class="info-button" on:click={() => showPopup('motherboard')}>▼ Click for motherboard info</button>
+      
     </div>
     
     <div class="computer-display">
@@ -392,9 +395,9 @@
         
         <div class="component cpu" on:click={() => showPopup('cpu')}>CPU</div>
         <div class="component ram" on:click={() => showPopup('ram')}>RAM</div>
-        <div class="component motherboard">MOTHERBOARD</div>
+        <div class="component motherboard" on:click={() => showPopup('motherboard')}>MOTHERBOARD</div>
         <div class="component gpu" on:click={() => showPopup('gpu')}>VIDEO CARD</div>
-        <div class="component psu">PSU</div>
+        <div class="component psu" on:click={() => showPopup('psu')} >PSU</div>
         <div class="component storage" on:click={() => showPopup('storage')}>HARD DRIVE</div>
       </div>
     </div>
@@ -409,6 +412,26 @@
       <button class="popup-close" on:click={closePopup}>&times;</button>
       <h2>Central Processing Unit (CPU)</h2>
       <p>The CPU is the brain of your computer. It executes instructions from programs and performs calculations. Modern CPUs have multiple cores that can handle different tasks simultaneously, making your computer faster and more efficient. The CPU's speed is measured in gigahertz (GHz), and it works closely with RAM to process data quickly.</p>
+    </div>
+  </div>
+{/if}
+
+{#if activePopup === 'motherboard'}
+  <div class="popup" on:click={handleBackdropClick}>
+    <div class="popup-content">
+      <button class="popup-close" on:click={closePopup}>&times;</button>
+      <h2>Motherboard</h2>
+      <p>TThe motherboard is the primary printed circuit board (PCB) in a computer. It’s basically the backbone of a computer, and enables all parts to work together. It connects and allows communication between all the different hardware components (such as the CPU, RAM, storage devices, GPU, peripherals).</p>
+    </div>
+  </div>
+{/if}
+
+{#if activePopup === 'psu'}
+  <div class="popup" on:click={handleBackdropClick}>
+    <div class="popup-content">
+      <button class="popup-close" on:click={closePopup}>&times;</button>
+      <h2>Power Supply Unit (PSU)</h2>
+      <p>TA Power Supply Unit (PSU) converts electricity from a wall outlet into usable power for a computer’s internal components. It distributes the correct voltage and current to parts like the motherboard, CPU, GPU, and storage devices.</p>
     </div>
   </div>
 {/if}
