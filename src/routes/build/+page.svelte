@@ -18,7 +18,7 @@
   onMount(() => {
     // scene setup
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x384454);
+    scene.background = new THREE.Color(0x79818c);
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.z = 5;
 
@@ -50,24 +50,16 @@
 
     let model;
     // add sample objects to drag
-    loader.load('cube.glb', (gltf) => {
+    loader.load('pccase.glb', (gltf) => {
       model = gltf.scene;
       scene.add(model);
-      objects.push(model);
-    });
-
-    let model2;
-    loader.load('cube.glb', (gltf) => {
-      model2 = gltf.scene;
-      scene.add(model2);
-      objects.push(model2)
+      //objects.push(model);
     });
 
     // controls
     orbitControls = new OrbitControls(camera, renderer.domElement);
 
     dragControls = new DragControls(objects, camera, renderer.domElement);
-
     dragControls.addEventListener('dragstart', (event) => {
       let obj = event.object;
       while (obj.parent && !objects.includes(obj)) {
@@ -127,7 +119,7 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function addCPU() {
+  function addAMD() {
     let newModel;
     loader.load("cylinder.glb", (gltf) => {
       newModel = gltf.scene;
@@ -137,9 +129,19 @@
     });
   }
 
-  function addRAM() {
+  function addMicron() {
     let newModel;
     loader.load("updatedprocessor.glb", (gltf) => {
+      newModel = gltf.scene;
+      scene.add(newModel);
+      objects.push(newModel);
+      dragControls.objects = objects;
+    });
+  }
+
+  function addRTX() {
+    let newModel;
+    loader.load("trrtx2080.glb", (gltf) => {
       newModel = gltf.scene;
       scene.add(newModel);
       objects.push(newModel);
@@ -204,12 +206,17 @@
   <h2 class="sidebar-title">Items for PC</h2>
   <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
-    <button on:click={() => addCPU()}>AMD Ryzen 9 9950X3D</button>
+    <button on:click={() => addAMD()}>AMD Ryzen 9 9950X3D</button>
     <button>Intel Core i9-14900K</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
-    <button on:click={() => addRAM()}>Micron DDR5</button>
+    <button on:click={() => addMicron()}>Micron DDR5</button>
     <button>Samsung SDIN5B2-32G</button>
+  </div>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>GPUs</p>
+    <button on:click={() => addRTX()}>RTX2080ti</button>
+    <button>Arc B580</button>
   </div>
 </div>

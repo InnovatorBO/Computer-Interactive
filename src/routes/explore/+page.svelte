@@ -117,7 +117,7 @@
   const toDestroy = []
   onMount(() => {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x384454);
+    scene.background = new THREE.Color(0x79818c);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 0.08, 0.2);
