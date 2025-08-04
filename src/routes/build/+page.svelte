@@ -69,6 +69,11 @@
     dragControls = new DragControls(objects, camera, renderer.domElement);
 
     dragControls.addEventListener('dragstart', (event) => {
+      let obj = event.object;
+      while (obj.parent && !objects.includes(obj)) {
+        obj = obj.parent;
+      }
+      event.object = obj; 
       outlinePass.selectedObjects = [event.object]
       orbitControls.enabled = false;
     });
@@ -91,7 +96,6 @@
       const toRemove = [...outlinePass.selectedObjects];
       toRemove.forEach(object => {
       let parent = object;
-      // Walk up the tree until the parent *is* in scene.children
       while (parent.parent && parent.parent !== scene) {
           parent = parent.parent;
         }
@@ -109,7 +113,7 @@
       objects.forEach(other => {
       if (other !== obj) {
         const dist = obj.position.distanceTo(other.position);
-        if (dist < 0.5) { // snap threshold
+        if (dist < 0.5) {
           obj.position.copy(other.position);
           }
         }
