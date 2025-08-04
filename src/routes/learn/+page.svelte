@@ -1,14 +1,14 @@
 <script lang="ts">
-  let activePopup: string | null = null;
+  let activePopup: string | null = $state(null);
 
-  function showPopup(popupId: string): void {
+  function showPopup(popupId: string) {
     if (activePopup) {
       closePopup();
     }
     activePopup = popupId;
   }
 
-  function closePopup(): void {
+  function closePopup() {
     activePopup = null;
   }
 
@@ -18,12 +18,18 @@
     }
   }
 
-  function handleBackdropClick(event: MouseEvent): void {
+  function handleBackdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) {
       closePopup();
     }
   }
 
+  function handleBackdropKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      closePopup();
+    }
+  }
+    
   let quizMode = $state(false);
   let currentQuestion = $state(0);
   let score = $state(0);
@@ -31,8 +37,9 @@
   let selectedAnswer = $state<number | null>(null);
   let quizCompleted = $state(false);
   let showCorrectAnswer = $state(false);
+  let currentQuizQuestions = $state<any[]>([]);
 
-  const quizQuestions = [
+  const questionBank = [
     {
       question: "What is the main function of the CPU?",
       options: [
@@ -90,7 +97,13 @@
     }
   ];
 
+  function selectRandomQuestions() {
+    const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5);
+  }
+
   function startQuiz() {
+    currentQuizQuestions = selectRandomQuestions();
     quizMode = true;
     currentQuestion = 0;
     score = 0;
@@ -99,23 +112,23 @@
     quizCompleted = false;
     showCorrectAnswer = false;
   }
-
+  
   function selectAnswer(answerIndex: number) {
     selectedAnswer = answerIndex;
   }
-
+  
   function submitAnswer() {
     if (selectedAnswer === null) return;
     
     showCorrectAnswer = true;
     
-    if (selectedAnswer === quizQuestions[currentQuestion].correct) {
+    if (selectedAnswer === currentQuizQuestions[currentQuestion].correct) {
       score++;
     }
   }
-
+  
   function continueToNext() {
-    if (currentQuestion < quizQuestions.length - 1) {
+    if (currentQuestion < currentQuizQuestions.length - 1) {
       currentQuestion++;
       selectedAnswer = null;
       showCorrectAnswer = false;
@@ -133,6 +146,7 @@
     selectedAnswer = null;
     quizCompleted = false;
     showCorrectAnswer = false;
+    currentQuizQuestions = [];
   }
 </script>
 
@@ -145,79 +159,119 @@
 <div class="explore-container">
   <div class="main-content">
     <div class="sidebar">
-      <button class="info-button" on:click={() => showPopup('cpu')}>▼ Click for CPU info</button>
-      <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for RAM info</button>
-      <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for GPU info</button>
-      <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for Storage info</button>
+      <button class="info-button" onclick={() => showPopup('cpu')}>▼ Click for CPU info</button>
+      <button class="info-button" onclick={() => showPopup('ram')}>▼ Click for RAM info</button>
+      <button class="info-button" onclick={() => showPopup('gpu')}>▼ Click for GPU info</button>
+      <button class="info-button" onclick={() => showPopup('storage')}>▼ Click for Storage info</button>
     </div>
     
     <div class="computer-display">
       <div class="computer-interior">
-        <img src="/comp.png" alt="Computer interior background" class="background-image" />
         <div class="cables">
           <div class="cable cable1"></div>
           <div class="cable cable2"></div>
           <div class="cable cable3"></div>
         </div>
         
-        <div class="component cpu" on:click={() => showPopup('cpu')}>CPU</div>
-        <div class="component ram" on:click={() => showPopup('ram')}>RAM</div>
+        <button class="component cpu" onclick={() => showPopup('cpu')}>CPU</button>
+        <button class="component ram" onclick={() => showPopup('ram')}>RAM</button>
         <div class="component motherboard">MOTHERBOARD</div>
-        <div class="component gpu" on:click={() => showPopup('gpu')}>VIDEO CARD</div>
+        <button class="component gpu" onclick={() => showPopup('gpu')}>VIDEO CARD</button>
         <div class="component psu">PSU</div>
-        <div class="component storage" on:click={() => showPopup('storage')}>HARD DRIVE</div>
+        <button class="component storage" onclick={() => showPopup('storage')}>HARD DRIVE</button>
       </div>
     </div>
   </div>
   
-  <button class="help-button" on:click={() => showPopup('help')}>?</button>
+  <button class="help-button" onclick={() => showPopup('help')}>?</button>
 </div>
 
+<!-- Popups -->
 {#if activePopup === 'cpu'}
-  <div class="popup" on:click={handleBackdropClick}>
+  <div 
+    class="popup" 
+    onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cpu-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
-      <button class="popup-close" on:click={closePopup}>&times;</button>
-      <h2>Central Processing Unit (CPU)</h2>
+      <button class="popup-close" onclick={closePopup} aria-label="Close popup">&times;</button>
+      <h2 id="cpu-title">Central Processing Unit (CPU)</h2>
       <p>The CPU is the brain of your computer. It executes instructions from programs and performs calculations. Modern CPUs have multiple cores that can handle different tasks simultaneously, making your computer faster and more efficient. The CPU's speed is measured in gigahertz (GHz), and it works closely with RAM to process data quickly.</p>
     </div>
   </div>
 {/if}
 
 {#if activePopup === 'ram'}
-  <div class="popup" on:click={handleBackdropClick}>
+  <div 
+    class="popup" 
+    onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ram-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
-      <button class="popup-close" on:click={closePopup}>&times;</button>
-      <h2>Random Access Memory (RAM)</h2>
+      <button class="popup-close" onclick={closePopup} aria-label="Close popup">&times;</button>
+      <h2 id="ram-title">Random Access Memory (RAM)</h2>
       <p>RAM is your computer's temporary workspace. It stores data that the CPU needs to access quickly while programs are running. More RAM allows you to run more programs simultaneously without slowing down. Unlike storage drives, RAM is volatile, meaning it loses all data when the computer is turned off. Common RAM sizes today range from 8GB to 32GB or more.</p>
     </div>
   </div>
 {/if}
 
 {#if activePopup === 'gpu'}
-  <div class="popup" on:click={handleBackdropClick}>
+  <div 
+    class="popup" 
+    onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="gpu-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
-      <button class="popup-close" on:click={closePopup}>&times;</button>
-      <h2>Graphics Processing Unit (Video Card)</h2>
+      <button class="popup-close" onclick={closePopup} aria-label="Close popup">&times;</button>
+      <h2 id="gpu-title">Graphics Processing Unit (Video Card)</h2>
       <p>The GPU handles all visual processing for your computer. It renders images, videos, and animations you see on your screen. While basic tasks can use integrated graphics, dedicated video cards are essential for gaming, video editing, 3D modeling, and AI workloads. Modern GPUs have thousands of small cores optimized for parallel processing tasks.</p>
     </div>
   </div>
 {/if}
 
 {#if activePopup === 'storage'}
-  <div class="popup" on:click={handleBackdropClick}>
+  <div 
+    class="popup" 
+    onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="storage-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
-      <button class="popup-close" on:click={closePopup}>&times;</button>
-      <h2>Storage Drive (Hard Drive/SSD)</h2>
+      <button class="popup-close" onclick={closePopup} aria-label="Close popup">&times;</button>
+      <h2 id="storage-title">Storage Drive (Hard Drive/SSD)</h2>
       <p>Storage drives permanently store your data, programs, and operating system. Traditional hard drives (HDDs) use spinning disks, while solid-state drives (SSDs) use flash memory for faster access. SSDs are much faster than HDDs, making your computer boot quicker and programs load faster. Your storage capacity determines how much data you can keep on your computer.</p>
     </div>
   </div>
 {/if}
 
 {#if activePopup === 'help'}
-  <div class="popup" on:click={handleBackdropClick}>
+  <div 
+    class="popup" 
+    onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="help-title"
+    tabindex="-1"
+  >
     <div class="popup-content">
-      <button class="popup-close" on:click={closePopup}>&times;</button>
-      <h2>How to Use This Explorer</h2>
+      <button class="popup-close" onclick={closePopup} aria-label="Close popup">&times;</button>
+      <h2 id="help-title">How to Use This Explorer</h2>
       <p>Welcome to the Computer Components Explorer! This interactive tool helps you learn about the main parts inside a computer. Click the "Click for info" buttons on the left to learn about different components. You can also click directly on the colored components inside the computer case to see them highlighted. Each component has a specific role in making your computer work!</p>
     </div>
   </div>
@@ -230,28 +284,28 @@
       <div class="quiz-intro">
         <h2>Test Your Knowledge!</h2>
         <p>Take our mini quiz</p>
-        <button class="quiz-start-btn" on:click={startQuiz}>Start Quiz</button>
+        <button class="quiz-start-btn" onclick={startQuiz}>Start Quiz</button>
       </div>
     {:else if !showResults}
       <div class="quiz-question">
         <div class="quiz-header">
-          <h2>Question {currentQuestion + 1} of {quizQuestions.length}</h2>
+          <h2>Question {currentQuestion + 1} of {currentQuizQuestions.length}</h2>
           <div class="quiz-progress">
             <div class="progress-bar">
-              <div class="progress-fill" style="width: {((currentQuestion + 1) / quizQuestions.length) * 100}%"></div>
+              <div class="progress-fill" style="width: {((currentQuestion + 1) / currentQuizQuestions.length) * 100}%"></div>
             </div>
             <span class="score">Score: {score}/{currentQuestion}</span>
           </div>
         </div>
         
         <div class="question-content">
-          <h3>{quizQuestions[currentQuestion].question}</h3>
+          <h3>{currentQuizQuestions[currentQuestion].question}</h3>
           
           <div class="answer-options">
-            {#each quizQuestions[currentQuestion].options as option, index}
+            {#each currentQuizQuestions[currentQuestion].options as option, index}
               <button 
-                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === quizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== quizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
-                on:click={() => selectAnswer(index)}
+                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === currentQuizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== currentQuizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
+                onclick={() => selectAnswer(index)}
                 disabled={showCorrectAnswer}
               >
                 {String.fromCharCode(65 + index)}. {option}
@@ -261,19 +315,19 @@
           
           {#if showCorrectAnswer}
             <div class="correct-answer">
-              <h4>Correct Answer: {String.fromCharCode(65 + quizQuestions[currentQuestion].correct)}. {quizQuestions[currentQuestion].options[quizQuestions[currentQuestion].correct]}</h4>
-              <p>{quizQuestions[currentQuestion].explanation}</p>
+              <h4>Correct Answer: {String.fromCharCode(65 + currentQuizQuestions[currentQuestion].correct)}. {currentQuizQuestions[currentQuestion].options[currentQuizQuestions[currentQuestion].correct]}</h4>
+              <p>{currentQuizQuestions[currentQuestion].explanation}</p>
             </div>
           {/if}
           
           <div class="quiz-actions">
             {#if selectedAnswer !== null && !showCorrectAnswer}
-              <button class="submit-btn" on:click={submitAnswer}>
+              <button class="submit-btn" onclick={submitAnswer}>
                 Submit Answer
               </button>
             {:else if showCorrectAnswer}
-              <button class="continue-btn" on:click={continueToNext}>
-                {currentQuestion === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+              <button class="continue-btn" onclick={continueToNext}>
+                {currentQuestion === currentQuizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
               </button>
             {/if}
           </div>
@@ -284,16 +338,16 @@
         <h2>Quiz Complete!</h2>
         <div class="results-content">
           <div class="score-display">
-            <h3>Your Score: {score}/{quizQuestions.length}</h3>
+            <h3>Your Score: {score}/{currentQuizQuestions.length}</h3>
             <div class="score-percentage">
-              {Math.round((score / quizQuestions.length) * 100)}%
+              {Math.round((score / currentQuizQuestions.length) * 100)}%
             </div>
             <div class="score-message">
-              {#if score === quizQuestions.length}
+              {#if score === currentQuizQuestions.length}
                 Perfect, you're a computer expert! 
-              {:else if score >= quizQuestions.length * 0.8}
+              {:else if score >= currentQuizQuestions.length * 0.8}
                 Great job! 
-              {:else if score >= quizQuestions.length * 0.6}
+              {:else if score >= currentQuizQuestions.length * 0.6}
                 Good work! Keep learning! 
               {:else}
                 Keep studying with our interactive model and flashcards!
@@ -301,7 +355,7 @@
             </div>
           </div>
           
-          <button class="retry-btn" on:click={resetQuiz}>Take Quiz Again</button>
+          <button class="retry-btn" onclick={resetQuiz}>Take Quiz Again</button>
         </div>
       </div>
     {/if}
@@ -317,13 +371,7 @@
 
   :global(html, body) {
     font-family: Arial, sans-serif;
-}
-
-.explore-container {
-    min-height: 100vh;
-    width: 100%;
-    background: #304357;
-}
+  }
 
   .page-container {
     position: absolute;
@@ -347,8 +395,8 @@
   }
 
   .explore-container {
-    height: 100vh;
-    width: 100vw;
+    min-height: 100vh;
+    width: 100%;
     background: #304357;
     display: flex;
     align-items: center;
@@ -423,10 +471,6 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(45deg, #2c3e50, #34495e);
-    background-image: url('/comp.png'); 
-    background-size: cover;  
-    background-position: center;
-    background-repeat: no-repeat;
     border-radius: 10px;
     position: relative;
     overflow: hidden;
@@ -434,17 +478,6 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 20px;
-  }
-
-  .background-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-    opacity: 0.3;  
   }
 
   .component {
@@ -462,7 +495,7 @@
     font-size: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
-    z-index: 1;  
+    z-index: 10;
   }
 
   .component:hover {
@@ -541,6 +574,11 @@
     box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
   }
 
+  .component:focus {
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+  }
+
   .popup {
     position: fixed;
     top: 0;
@@ -611,6 +649,7 @@
     top: 0;
     left: 0;
     pointer-events: none;
+    z-index: 1;
   }
 
   .cable {
@@ -769,6 +808,38 @@
     color: #2e7d32;
   }
 
+  .answer-btn.correct {
+    border-color: #4CAF50;
+    background: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  .answer-btn.incorrect {
+    border-color: #f44336;
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .correct-answer {
+    background: #e8f5e8;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .correct-answer h4 {
+    color: #2e7d32;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+
+  .correct-answer p {
+    color: #666;
+    margin: 0;
+    line-height: 1.4;
+  }
+
   .submit-btn {
     background: linear-gradient(45deg, #2196F3, #1976D2);
     color: white;
@@ -784,6 +855,24 @@
   .submit-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  }
+
+  .continue-btn {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+
+  .continue-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
   }
 
   .quiz-results {
