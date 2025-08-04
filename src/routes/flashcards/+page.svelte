@@ -262,7 +262,7 @@
   }
 
   .prev-btn:hover, .next-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     background: #485270;
   }
 
@@ -283,8 +283,7 @@
 
   .flip-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-    background: #2f75b5;
+    background: #305bb5;
   }
 
   /* Flashcards grid container (bottom) */
@@ -298,7 +297,7 @@
 
   /* Toggle button style */
   .toggle-button {
-    background: linear-gradient(135deg, #0497ad, #02c75b);
+    background: linear-gradient(135deg, #0496ada1, #02c75ba4);
     color: white;
     border: none;
     padding: 12px 18px;
@@ -310,14 +309,15 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: background 0.2s ease-in-out;
+    transition: 0.2s ease-in-out;
     margin-bottom: 20px;
     width: 100%;
     max-width: 500px;
   }
 
   .toggle-button:hover {
-    background: #305bb5;
+    background: linear-gradient(135deg, #0497ad, #02c75b);
+    transform: scale(1.02);
   }
 
   .arrow {

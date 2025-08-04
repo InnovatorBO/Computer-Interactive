@@ -88,7 +88,228 @@
       ],
       correct: 2,
       explanation: "RAM is volatile memory, meaning it loses all data when the computer is turned off."
+    },
+    {
+      question: "What does CPU stand for?",
+      options: [
+        "Central Progress Unit",
+        "Core Printing Utility",
+        "Central Processing Unit",
+        "Computer Primitive User"
+      ],
+      correct: 2,
+      explanation: "CPU stands for Central Processing Unit, which is the main component that executes instructions in a computer."
+    },
+    {
+      question: "What is the main function of RAM?",
+      options: [
+        "To render graphics",
+        "To store data permanently",
+        "To power the computer",
+        "To provide temporary storage to the computer"
+      ],
+      correct: 3,
+      explanation: "RAM provides temporary storage for data that the CPU needs to access quickly while programs are running."
+    },
+    {
+      question: "Which of these is a type of long-term storage?",
+      options: [
+        "RAM",
+        "SSD",
+        "USB",
+        "Cache"
+      ],
+      correct: 1,
+      explanation: "SSD (Solid State Drive) is a type of long-term storage that uses flash memory for faster access compared to traditional HDDs."
+    },
+    {
+      question: "Which of these components is NOT typically found in a motherboard?",
+      options: [
+        "CPU socket",
+        "Chipset",
+        "PSU",
+        "VRM"
+      ],
+      correct: 2,
+      explanation: "The PSU (Power Supply Unit) is not part of the motherboard; it provides power to the entire computer system."
+    },
+    {
+      question: "What can happen if a computer’s cooling system fails?",
+      options: [
+        "The hard drive speeds up",
+        "The GPU becomes louder",
+        "The system can overheat and shut down",
+        "The brightness increases"
+      ],
+      correct: 2,
+      explanation: "If the cooling system fails, the computer can overheat, leading to potential damage and automatic shutdown to prevent further issues."
+    },
+    {
+      question: "Which of the following would most likely be stored in RAM temporarily?",
+      options: [
+        "An open document being edited",
+        "Saved Wi-Fi passwords",
+        "Operating system files on your SSD",
+        "System BIOS configurations"
+      ],
+      correct: 0,
+      explanation: "An open document being edited is stored in RAM temporarily so that it can be accessed quickly by the CPU while you are working on it."
+    },
+    {
+      question: "Which of these upgrades would be the most helpful for smoother performance in rendering high-resolution images?",
+      options: [
+        "Upgrading from 8GB to 16GB of RAM",
+        "Installing a more powerful GPU",
+        "Adding a second monitor",
+        "Replacing the CPU with one that has fewer cores"
+      ],
+      correct: 1,
+      explanation: "Installing a more powerful GPU would significantly improve performance in rendering high-resolution images, as the GPU is specifically designed for graphics processing."
+    },
+    {
+      question: "What type of memory is typically built directly into the CPU for fast access?",
+      options: [
+        "RAM",
+        "HDD",
+        "ROM",
+        "Cache memory"
+      ],
+      correct: 3,
+      explanation: "Cache memory is a small amount of high-speed memory built directly into the CPU to store frequently accessed data for quick retrieval."
+    },
+    {
+      question: "Which motherboard component regulates power to the CPU?",
+      options: [
+        "Northbridge",
+        "Power connector",
+        "VRM",
+        "I/O ports"
+      ],
+      correct: 2,
+      explanation: "VRM (Voltage Regulator Module) regulates the voltage supplied to the CPU, ensuring it receives stable power for optimal performance." 
+    },
+    {
+      question: "The core of a SSD, which stores data by trapping electrical charges in memory cells, is called:",
+      options: [
+        "RAM",
+        "NAND flash memory",
+        "Data bus",
+        "Single-core CPU"
+      ],
+      correct: 1,
+      explanation: "NAND flash memory is the core technology used in SSDs to store data by trapping electrical charges in memory cells, allowing for fast read and write speeds."
+    },
+    {
+      question: "The CPU’s processor speed is measured in:",
+      options: [
+        "Revolutions per minute (RPM)",
+        "Terabytes (TB)",
+        "Cubic feet per minute (CFM)",
+        "Gigahertz (GHz)"
+      ],
+      correct: 3,
+      explanation: "The CPU’s processor speed is measured in gigahertz (GHz), which indicates how many billions of cycles per second the CPU can perform."
+    },
+    {
+      question: "What does a heat sink do?",
+      options: [
+        "Generate power",
+        "Store data",
+        "Transfer heat away from components",
+        "Render images"
+      ],
+      correct: 2,
+      explanation: "A heat sink transfers heat away from components like the CPU and GPU to prevent overheating, ensuring stable performance and longevity."
+    },
+    {
+      question: "What type of bus carries data between the CPU and RAM?",
+      options: [
+        "Power bus",
+        "Data bus",
+        "Control bus",
+        "Address bus"
+      ],
+      correct: 1,
+      explanation: "The data bus carries data between the CPU and RAM, allowing the CPU to read and write data stored in memory."
+    },
+    {
+      question: "Which component is essential for displaying images on your monitor?",
+      options: [
+        "SSD",
+        "GPU",
+        "PSU",
+        "RAM"
+      ],
+      correct: 1,
+      explanation: "The GPU (Graphics Processing Unit) is essential for rendering and displaying images on your monitor, handling all visual processing tasks."
+    },
+    {
+      question: "Which type of memory is used to store textures and shaders in GPUs?",
+      options: [
+        "VRAM (Video RAM)",
+        "ROM (Read-Only Memory)",
+        "DRAM (Dynamic RAM)",
+        "SRAM (Static RAM)"
+      ],
+      correct: 0,
+      explanation: "VRAM (Video RAM) is used in GPUs to store textures, shaders, and other graphical data that the GPU needs to access quickly for rendering images and videos."
+    },
+    {
+      question: "What does BIOS do when you start a computer?",
+      options: [
+        "Deletes all temporary files",
+        "Configures hardware and loads the operating system",
+        "Connects the GPU to the monitor",
+        "Creates a password for your computer"
+      ],
+      correct: 1,
+      explanation: "BIOS (Basic Input/Output System) configures hardware components and loads the operating system into RAM when you start your computer, allowing it to boot up properly."
+    },
+    {
+      question: "Which HDD component is directly responsible for accessing and modifying data on the spinning platters?",
+      options: [
+        "Spindle",
+        "Actuator",
+        "Read/write heads",
+        "Controller"
+      ],
+      correct: 2,
+      explanation: "The read/write heads are directly responsible for accessing and modifying data on the spinning platters of an HDD, moving across the surface to read or write data as needed."
+    },
+    {
+      question: "Where do you plug in a device like a mouse or a keyboard?",
+      options: [
+        "GPU",
+        "CPU socket",
+        "I/O port",
+        "RAM slot"
+      ],
+      correct: 2,
+      explanation: "I/O ports are used to connect peripherals like a mouse or keyboard to the computer, allowing them to communicate with the CPU and other components."
+    },
+    {
+      question: "What is the function of thermal paste in a computer’s cooling system?",
+      options: [
+        "To regulate voltage from the PSU",
+        "To keep the computer warm in colder temperatures",
+        "To fill small gaps between the CPU and the heat sink",
+        "To replace the need for fans"
+      ],
+      correct: 2,
+      explanation: "Thermal paste fills microscopic gaps between the CPU and the heat sink, improving heat transfer and helping to keep the CPU cool during operation."
+    },
+    {
+      question: "Which component connects all parts of the computer together?",
+      options: [
+        "Motherboard",
+        "CPU",
+        "PSU",
+        "Platters"
+      ],
+      correct: 0,
+      explanation: "The motherboard connects all parts of the computer together, allowing communication between the CPU, RAM, GPU, storage drives, and other components."
     }
+
   ];
 
   function selectRandomQuestions() {
