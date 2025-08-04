@@ -320,7 +320,7 @@
   width: 90%;
   border: 1px solid #ccc;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 9999;
   animation: popupSlide 0.3s ease-out;
   }
 
