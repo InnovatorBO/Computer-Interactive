@@ -88,11 +88,20 @@
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Delete' || event.key === 'Backspace') {
-        outlinePass.selectedObjects.forEach(object => {
-          scene.remove(object)
-          objects = objects.filter(n => n != object)
-          dragControls.objects = objects
-        });
+      const toRemove = [...outlinePass.selectedObjects];
+      toRemove.forEach(object => {
+      let parent = object;
+      // Walk up the tree until the parent *is* in scene.children
+      while (parent.parent && parent.parent !== scene) {
+          parent = parent.parent;
+        }
+        if (parent.parent === scene) {
+          scene.remove(parent);
+          objects = objects.filter(n => n !== parent);
+        }
+      });
+      dragControls.objects = objects;
+      outlinePass.selectedObjects = [];
       }
     });
     dragControls.addEventListener('dragend', (event) => {
@@ -102,10 +111,10 @@
         const dist = obj.position.distanceTo(other.position);
         if (dist < 0.5) { // snap threshold
           obj.position.copy(other.position);
+          }
         }
-      }
-     });
-    });
+      });
+      });
   });
 
   function onWindowResize() {
@@ -126,7 +135,7 @@
 
   function addRAM() {
     let newModel;
-    loader.load("sphere.glb", (gltf) => {
+    loader.load("updatedprocessor.glb", (gltf) => {
       newModel = gltf.scene;
       scene.add(newModel);
       objects.push(newModel);
