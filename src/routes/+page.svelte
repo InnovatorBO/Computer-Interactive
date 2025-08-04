@@ -3,6 +3,26 @@
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+
+  let dropdownOpen = false;
+  let openDescription: string | null = null;
+
+  const pages = [
+    { name: 'Learn', path: '/learn', description: 'Learn about computer components with interactive 2D diagrams and explanations. Quiz yourself with practice questions.' },
+    { name: 'Explore', path: '/explore', description: 'Explore the different parts of a 3D computer visually and interactively.' },
+    { name: 'Flashcards', path: '/flashcards', description: 'Practice and test your knowledge with computer component flashcards.' },
+    { name: 'Game', path: '/game', description: 'Play a game to reinforce your understanding of computer parts.' },
+    { name: 'Build', path: '/game_page', description: 'Build your own computer and understand the specs.' },
+    { name: 'Interactive', path: '/interactive', description: 'Interact with computer models and simulations.' },
+  ];
+
+  function toggleDropdown() {
+    dropdownOpen = !dropdownOpen;
+  }
+  function toggleDescription(pageName: string) {
+    openDescription = openDescription === pageName ? null : pageName;
+  }
+
   // Function for CTA button
   function handleHomeAction() {
     console.log('Home action triggered');
@@ -91,7 +111,7 @@
   function loadAllModels() {
     const modelFiles = [
       'dream_computer_setup1.glb',
-      'dream_computer_setup2.glb',
+      //'dream_computer_setup2.glb',
       'dream_computer_setup3.glb'
     ];
 
@@ -242,6 +262,25 @@
 <div class="main-content">
   <h1>Thinking Machine</h1>
   <p>Description/about the product</p>
+  <div class="dropdown-container">
+    <button class="dropdown-toggle" on:click={toggleDropdown} aria-expanded={dropdownOpen}>
+      {dropdownOpen ? '▼' : '►'} Explore each page
+    </button>
+    {#if dropdownOpen}
+      <div class="dropdown-menu">
+        {#each pages as page}
+          <div class="dropdown-page">
+            <div class="page-link-row">
+              <a href={page.path} class="dropdown-link" on:click|preventDefault={() => toggleDescription(page.name)}>{page.name}</a>
+            </div>
+            {#if openDescription === page.name}
+              <div class="page-description">{page.description}</div>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
   <a href="/learn" class="cta-button">Go to Product</a>
 </div>
 
@@ -308,6 +347,83 @@
   .cta-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+  }
+
+  .dropdown-container {
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dropdown-toggle {
+    width: 100%;
+    background: linear-gradient(135deg, #0497ad, #02c75b);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(26, 188, 156, 0.2);
+    text-align: left;
+    transition: background 0.3s;
+  }
+  .dropdown-toggle:focus {
+    outline: 2px solid #02c75b;
+  }
+  .dropdown-menu {
+    width: 100%;
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 24px rgba(26, 188, 156, 0.15);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 10;
+  }
+  .dropdown-page {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0 20px;
+  }
+  .dropdown-page:last-child {
+    border-bottom: none;
+  }
+  .page-link-row {
+    display: flex;
+    align-items: center;
+    padding: 18px 0 6px 0;
+  }
+  .dropdown-link {
+    color: #0497ad;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .dropdown-link:hover {
+    color: #02c75b;
+    text-decoration: underline;
+  }
+  .page-description {
+    font-size: 1rem;
+    color: #333;
+    background: #f6f8fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(26, 188, 156, 0.07);
+    animation: fadeIn 0.2s;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @media (max-width: 768px) {
