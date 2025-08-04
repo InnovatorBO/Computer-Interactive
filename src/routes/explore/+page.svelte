@@ -117,7 +117,7 @@
   const toDestroy = []
   onMount(() => {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x384454);
+    scene.background = new THREE.Color(0x79818c);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 0.08, 0.2);
@@ -338,6 +338,7 @@
   }
 </style>
 
+<h2>Learn about the different parts of a computer by clicking on the model!</h2>
 <div bind:this={container} style="width:100%; height:500px; position:relative;">
   {#if showInfo}
     <div class="info-box" style="left: {infoLeft}px; top: {infoTop}px;">
