@@ -111,7 +111,7 @@
   function loadAllModels() {
     const modelFiles = [
       'dream_computer_setup1.glb',
-      'dream_computer_setup2.glb',
+      //'dream_computer_setup2.glb',
       'dream_computer_setup3.glb'
     ];
 
