@@ -2,8 +2,6 @@
   import { onMount, onDestroy } from 'svelte';
   import { tick } from 'svelte';
 
-  // Your flashcard data and logic from first snippet here
-  // (omitted here for brevity; just reuse your original code)
  let title = 'Flashcards Page';
 
     type Flashcard = {
