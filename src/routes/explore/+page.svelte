@@ -7,6 +7,15 @@
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
+  import ModelViewer from './modelviewer.svelte';
+  const models = [
+    { url: cpuUrl, label: "CPU" },
+    { url: gpuUrl, label: "GPU" },
+    { url: motherboardUrl, label: "Motherboard" },
+    { url: ramUrl, label: "RAM" },
+    { url: memoryUrl, label: "Memory" },
+    { url: "", label: "Coming Soon" } // Optional 6th slot filler
+  ];
 
   import { writable } from 'svelte/store';
   export const modelState = writable({
@@ -308,6 +317,8 @@
     showInfo = false;
     selectedObject = null;
   }
+
+  
 </script>
 
 <style>
@@ -345,4 +356,20 @@
       <button on:click={closeInfo}>X</button>
     </div>
   {/if}
+</div>
+
+
+<!-- 3D Model Grid Viewer -->
+<div class="grid-section">
+  <h2>View 3D Models</h2>
+  <div class="grid">
+    {#each models as model}
+      <div class="viewer">
+        {#if model.url}
+          <ModelViewer modelUrl={model.url} width={300} height={300} />
+        {/if}
+        <div class="label">{model.label}</div>
+      </div>
+    {/each}
+  </div>
 </div>
