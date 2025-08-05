@@ -168,7 +168,7 @@
     margin: 0 auto;
     padding: 20px;
     color: white;
-    font-family: 'system-ui', sans-serif;
+    font-family: inherit;
   }
 
   h1 {
@@ -246,7 +246,6 @@
   }
 
   .prev-btn, .next-btn {
-    font-family: 'Arial', sans-serif;
     font-weight: 550;
     margin-top: 1rem;
     padding: 0.75rem 1.5rem;
@@ -266,7 +265,6 @@
   }
 
   .flip-btn {
-    font-family: 'Arial', sans-serif;
     font-weight: 550;
     margin-top: 1rem;
     padding: 0.75rem 7rem;

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import '../styles/global.css';
 </script>
 
 <div class="page-wrapper">

@@ -568,10 +568,6 @@
     box-sizing: border-box;
   }
 
-  :global(html, body) {
-    font-family: Arial, sans-serif;
-}
-
 .explore-container {
     min-height: 100vh;
     width: 100%;
