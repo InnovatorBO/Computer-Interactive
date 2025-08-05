@@ -313,6 +313,7 @@
 <style>
   .info-box {
   position: absolute;
+  color: black;
   background: white;
   padding: 40px;
   border-radius: 20px;
