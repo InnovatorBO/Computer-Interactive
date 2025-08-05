@@ -196,7 +196,7 @@
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
     <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4</button>
-    <button>Corsair Vengeance LPX</button>
+    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>GPUs</p>
