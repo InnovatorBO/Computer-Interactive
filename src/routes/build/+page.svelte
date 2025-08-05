@@ -6,17 +6,19 @@
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { DragControls } from 'three/examples/jsm/controls/DragControls.js';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-  import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
+  import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
   let container;
   let scene, camera, renderer, loader;
   let orbitControls, dragControls;
-  let enableOrbit = true; // default mode
+  let enableOrbit = true;
 
-  let objects = []; // the objects you want to drag
+  let objects = [];
+  let modelStates = {}; // { uniqueName: { fileName, position, rotation } }
+  let modelCounter = 0; // for unique naming
 
   onMount(() => {
-    // scene setup
+    // Setup
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x79818c);
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -37,44 +39,88 @@
     );
     composer.addPass(outlinePass);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    const processorGroup = new THREE.Group()
-
     loader = new GLTFLoader();
-
-    let model;
-    // add sample objects to drag
+    // Load pc case - NOT draggable, just add it
     loader.load('pccase.glb', (gltf) => {
-      model = gltf.scene;
-      scene.add(model);
-      //objects.push(model);
+      const caseModel = gltf.scene;
+      scene.add(caseModel);
     });
 
-    // controls
     orbitControls = new OrbitControls(camera, renderer.domElement);
-
     dragControls = new DragControls(objects, camera, renderer.domElement);
+    dragControls.transformGroup = true;
+
     dragControls.addEventListener('dragstart', (event) => {
       let obj = event.object;
       while (obj.parent && !objects.includes(obj)) {
         obj = obj.parent;
       }
-      event.object = obj; 
-      outlinePass.selectedObjects = [event.object]
+      event.object = obj;
+      outlinePass.selectedObjects = [event.object];
       orbitControls.enabled = false;
     });
-    dragControls.addEventListener('dragend', () => {
-      outlinePass.selectedObjects = []
+
+    dragControls.addEventListener('dragend', (event) => {
+      let obj = event.object;
+      while (obj.parent && !objects.includes(obj)) {
+        obj = obj.parent;
+      }
+      const key = obj.name.replace('_group', ''); // unique model key
+
+      if (key && modelStates[key]) {
+        modelStates[key].position = {
+          x: obj.position.x,
+          y: obj.position.y,
+          z: obj.position.z
+        };
+        modelStates[key].rotation = {
+          x: obj.rotation.x,
+          y: obj.rotation.y,
+          z: obj.rotation.z
+        };
+        localStorage.setItem('sceneState', JSON.stringify(modelStates));
+      }
+
+      // Collision snap (unchanged)
+      objects.forEach(other => {
+        if (other !== obj) {
+          const dist = obj.position.distanceTo(other.position);
+          if (dist < 0.5) {
+            obj.position.copy(other.position);
+          }
+        }
+      });
+
+      outlinePass.selectedObjects = [];
       if (enableOrbit) orbitControls.enabled = true;
     });
 
-    // animate loop
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        const toRemove = [...outlinePass.selectedObjects];
+        toRemove.forEach(object => {
+          let parent = object;
+          while (parent.parent && parent.parent !== scene) {
+            parent = parent.parent;
+          }
+          if (parent.parent === scene) {
+            scene.remove(parent);
+            objects = objects.filter(n => n !== parent);
+            delete modelStates[parent.name.replace('_group', '')];
+          }
+        });
+        dragControls.objects = objects;
+        outlinePass.selectedObjects = [];
+        localStorage.setItem('sceneState', JSON.stringify(modelStates));
+      }
+    });
+
     function animate() {
       requestAnimationFrame(animate);
       if (enableOrbit) orbitControls.update();
@@ -83,34 +129,13 @@
     animate();
 
     window.addEventListener('resize', onWindowResize);
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Delete' || event.key === 'Backspace') {
-      const toRemove = [...outlinePass.selectedObjects];
-      toRemove.forEach(object => {
-      let parent = object;
-      while (parent.parent && parent.parent !== scene) {
-          parent = parent.parent;
-        }
-        if (parent.parent === scene) {
-          scene.remove(parent);
-          objects = objects.filter(n => n !== parent);
-        }
-      });
-      dragControls.objects = objects;
-      outlinePass.selectedObjects = [];
-      }
-    });
-    dragControls.addEventListener('dragend', (event) => {
-      const obj = event.object;
-      objects.forEach(other => {
-      if (other !== obj) {
-        const dist = obj.position.distanceTo(other.position);
-        if (dist < 0.5) {
-          obj.position.copy(other.position);
-          }
-        }
-      });
-      });
+
+    // Load saved models from localStorage
+    const saved = localStorage.getItem('sceneState');
+    if (saved) {
+      modelStates = JSON.parse(saved);
+      Object.values(modelStates).forEach(({ fileName }) => addModel(fileName));
+    }
   });
 
   function onWindowResize() {
@@ -119,33 +144,44 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function addAMD() {
-    let newModel;
-    loader.load("cylinder.glb", (gltf) => {
-      newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
-      dragControls.objects = objects;
-    });
-  }
+  function addModel(fileName) {
+    const newGroup = new THREE.Group();
+    loader.load(fileName, (gltf) => {
+      const newModel = gltf.scene;
+      // Assign unique name
+      const uniqueName = fileName.replace(/\.[^/.]+$/, "") + "_" + modelCounter++;
+      newGroup.name = uniqueName + '_group';
+      newModel.name = uniqueName;
+      newGroup.add(newModel);
 
-  function addMicron() {
-    let newModel;
-    loader.load("updatedprocessor.glb", (gltf) => {
-      newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
-      dragControls.objects = objects;
-    });
-  }
+      // If saved state exists, set position/rotation
+      const saved = modelStates[uniqueName];
+      if (saved) {
+        newGroup.position.set(saved.position.x, saved.position.y, saved.position.z);
+        newGroup.rotation.set(saved.rotation.x, saved.rotation.y, saved.rotation.z);
+      }
 
-  function addRTX() {
-    let newModel;
-    loader.load("trrtx2080.glb", (gltf) => {
-      newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
+      scene.add(newGroup);
+      objects.push(newGroup);
       dragControls.objects = objects;
+
+      // Save initial state if not present
+      if (!modelStates[uniqueName]) {
+        modelStates[uniqueName] = {
+          fileName,
+          position: {
+            x: newGroup.position.x,
+            y: newGroup.position.y,
+            z: newGroup.position.z
+          },
+          rotation: {
+            x: newGroup.rotation.x,
+            y: newGroup.rotation.y,
+            z: newGroup.rotation.z
+          }
+        };
+        localStorage.setItem('sceneState', JSON.stringify(modelStates));
+      }
     });
   }
 </script>
@@ -206,17 +242,21 @@
   <h2 class="sidebar-title">Items for PC</h2>
   <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
-    <button on:click={() => addAMD()}>AMD Ryzen 9 9950X3D</button>
-    <button>Intel Core i9-14900K</button>
+    <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D</button>
+    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
-    <button on:click={() => addMicron()}>Micron DDR5</button>
-    <button>Samsung SDIN5B2-32G</button>
+    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4</button>
+    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>GPUs</p>
-    <button on:click={() => addRTX()}>RTX2080ti</button>
-    <button>Arc B580</button>
+    <button on:click={() => addModel("trrtx2080.glb")}>RTX 2080ti</button>
+    <button on:click={() => addModel("amdrx6700.glb")}>RX 6700 XT</button>
+  </div>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>Motherboards</p>
+    <button on:click={() => addModel("motherboardASUS.glb")}>ASUS x570</button>
   </div>
 </div>
