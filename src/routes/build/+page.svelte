@@ -37,10 +37,10 @@
     );
     composer.addPass(outlinePass);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
@@ -60,6 +60,8 @@
     orbitControls = new OrbitControls(camera, renderer.domElement);
 
     dragControls = new DragControls(objects, camera, renderer.domElement);
+    dragControls.transformGroup = true
+
     dragControls.addEventListener('dragstart', (event) => {
       let obj = event.object;
       while (obj.parent && !objects.includes(obj)) {
@@ -119,35 +121,17 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function addAMD() {
+  function addModel(modelName) {
     let newModel;
-    loader.load("cylinder.glb", (gltf) => {
+    const newGroup = new THREE.Group();
+    loader.load(modelName, (gltf) =>{
       newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
-      dragControls.objects = objects;
+      newGroup.add(newModel)
+      scene.add(newGroup);
+      objects.push(newGroup);
+      dragControls.objects = objects
     });
-  }
-
-  function addMicron() {
-    let newModel;
-    loader.load("updatedprocessor.glb", (gltf) => {
-      newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
-      dragControls.objects = objects;
-    });
-  }
-
-  function addRTX() {
-    let newModel;
-    loader.load("trrtx2080.glb", (gltf) => {
-      newModel = gltf.scene;
-      scene.add(newModel);
-      objects.push(newModel);
-      dragControls.objects = objects;
-    });
-  }
+  } 
 </script>
 
 <style>
@@ -206,17 +190,21 @@
   <h2 class="sidebar-title">Items for PC</h2>
   <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
-    <button on:click={() => addAMD()}>AMD Ryzen 9 9950X3D</button>
-    <button>Intel Core i9-14900K</button>
+    <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D</button>
+    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
-    <button on:click={() => addMicron()}>Micron DDR5</button>
-    <button>Samsung SDIN5B2-32G</button>
+    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4</button>
+    <button>Corsair Vengeance LPX</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>GPUs</p>
-    <button on:click={() => addRTX()}>RTX2080ti</button>
-    <button>Arc B580</button>
+    <button on:click={() => addModel("trrtx2080.glb")}>RTX 2080ti</button>
+    <button on:click={() => addModel("amdrx6700.glb")}>RX 6700 XT</button>
+  </div>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>Motherboards</p>
+    <button on:click={() => addModel("motherboardASUS.glb")}>ASUS x570</button>
   </div>
 </div>
