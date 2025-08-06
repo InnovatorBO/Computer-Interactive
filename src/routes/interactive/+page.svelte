@@ -17,7 +17,31 @@
   let ramModel: THREE.Mesh;
   let storageModel: THREE.Mesh;
   let isBrowser = browser;
-  
+  let activePopup: string | null = null;
+
+  function showPopup(popupId: string): void {
+    if (activePopup) {
+      closePopup();
+    }
+    activePopup = popupId;
+  }
+
+  function closePopup(): void {
+    activePopup = null;
+  }
+
+  function handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      closePopup();
+    }
+  }
+
+  function handleBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      closePopup();
+    }
+  }
+
   // Initialize Three.js 3D scene
   onMount(async () => {
     if (typeof window !== 'undefined' && canvasContainer) {
@@ -737,6 +761,19 @@
   <h1>{title}</h1>
   <p>Adjust hardware components to see how they affect your computer's performance!</p>
 
+  <div class="help-btn">
+    <button class="help-button" on:click={() => showPopup('help')}>?</button>
+    {#if activePopup === 'help'}
+      <div class="popup" on:click={handleBackdropClick}>
+        <div class="popup-content">
+          <button class="popup-close" on:click={closePopup}>&times;</button>
+          <h2>How to Use This Interactive Page</h2>
+          <p>Welcome to the interactive page! This simulator allows you to visualize how your computer’s performance changes with different budgets. In the “Hardware Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to see if you can achieve optimal performance!</p>
+        </div>
+      </div>
+    {/if}
+  </div>
+
   <!-- 3D Interactive Model using model-viewer -->
   <div class="model-section">
     <div class="model-container">
@@ -977,13 +1014,13 @@
   }
 
   h1 {
-    color: #333;
+    color: #fff;
     margin-bottom: 0.5rem;
     text-align: center;
   }
 
   p {
-    color: #666;
+    color: #818181;
     text-align: center;
     margin-bottom: 2rem;
   }
@@ -1003,13 +1040,6 @@
     cursor: pointer;
   }
 
-
-
-  h1 {
-    color: #333;
-    margin-bottom: 0.5rem;
-    text-align: center;
-  }
 
   .model-container {
     width: 100%;
@@ -1274,6 +1304,10 @@
     margin: 1rem 0;
   }
 
+  .score-display .label {
+    color: #495057;
+  }
+  
   .score {
     display: block;
     font-size: 2.5rem;
@@ -1354,4 +1388,97 @@
       gap: 0.5rem;
     }
   }
+
+  .help-button {
+    position: absolute;
+    top: 95px;
+    right: 5px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .help-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  .popup:focus-within {
+    outline: none;
+  }
+
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .popup-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: popupSlide 0.3s ease-out;
+  }
+
+  @keyframes popupSlide {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s ease;
+  }
+
+  .popup-close:hover {
+    color: #333;
+  }
+
+  .popup h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
+    border: none;
+  }
+
+  .popup p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 16px;
+    text-align: left;
+  }
+
 </style>
