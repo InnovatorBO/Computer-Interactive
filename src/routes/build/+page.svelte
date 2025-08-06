@@ -116,9 +116,6 @@
 
     dragControls.addEventListener('dragend', (event) => {
       let obj = event.object;
-      console.log(obj.position.x)
-      console.log(obj.position.y)
-      console.log(obj.position.z)
       while (obj.parent && !objects.includes(obj)) {
         obj = obj.parent;
       }
