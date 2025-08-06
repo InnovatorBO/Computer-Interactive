@@ -115,15 +115,21 @@
           let parent = object;
           while (parent.parent && parent.parent !== scene) parent = parent.parent;
           if (parent.parent === scene) {
-            scene.remove(parent);
-            objects = objects.filter(n => n !== parent);
             const modelName = parent.name.replace('_group', '');
             const modelState = modelStates[modelName];
             if (modelState) {
               currentPrice -= prices[modelState.fileName] || 0;
               delete modelStates[modelName];
               localStorage.setItem('sceneState', JSON.stringify(modelStates));
+              if (Object.keys(modelStates).length === 0) {
+                localStorage.removeItem('modelCounter');
+                modelCounter = 0;
+              }
+            } else {
+              console.warn("No modelState found for", modelName);
             }
+            scene.remove(parent);
+            objects = objects.filter(n => n !== parent);
           }
         });
         dragControls.objects = objects;
