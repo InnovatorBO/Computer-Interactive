@@ -168,7 +168,6 @@
             const modelName = parent.name.replace('_group', "")
             const modelState = modelStates[modelName]
             currentPrice -= prices[modelState.fileName]
-            console.log(currentPrice)
             delete modelStates[parent.name.replace('_group', '')];
           }
         });
