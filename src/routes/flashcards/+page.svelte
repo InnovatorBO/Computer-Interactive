@@ -154,7 +154,7 @@
 
 <style>
 
-  :global(html, body) {
+  :global(html) {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -172,8 +172,7 @@
   }
 
   h1 {
-    font-size: 2.5rem;
-    margin-top: 20px;
+    margin-top: 10px;
     margin-bottom: 20px;
     text-align: center;
   }

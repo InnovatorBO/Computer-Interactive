@@ -767,8 +767,8 @@
       <div class="popup" on:click={handleBackdropClick}>
         <div class="popup-content">
           <button class="popup-close" on:click={closePopup}>&times;</button>
-          <h2>How to Use This Interactive Page</h2>
-          <p>Welcome to the interactive page! This simulator allows you to visualize how your computer’s performance changes with different budgets. In the “Hardware Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to see if you can achieve optimal performance!</p>
+          <h2>How to Use This Simulator</h2>
+          <p>Welcome to the Computer Performance Simulator! This page allows you to visualize how your computer’s performance changes with different budgets. In the “Hardware Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to see if you can achieve optimal performance!</p>
         </div>
       </div>
     {/if}

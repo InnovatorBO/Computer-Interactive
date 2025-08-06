@@ -11,7 +11,6 @@
     { name: 'Learn', path: '/learn', description: 'Learn about computer components with interactive 2D diagrams and explanations. Quiz yourself with practice questions.' },
     { name: 'Explore', path: '/explore', description: 'Explore the different parts of a 3D computer visually and interactively.' },
     { name: 'Flashcards', path: '/flashcards', description: 'Practice and test your knowledge with computer component flashcards.' },
-    { name: 'Game', path: '/game', description: 'Play a game to reinforce your understanding of computer parts.' },
     { name: 'Build', path: '/game_page', description: 'Build your own computer and understand the specs.' },
     { name: 'Interactive', path: '/interactive', description: 'Interact with computer models and simulations.' },
   ];
@@ -302,7 +301,7 @@
 
   .main-content {
     flex: 1;
-    background: rgba(48, 69, 88, 0.35); 
+    background: rgba(48, 69, 88, 0.35);
     backdrop-filter: blur(8px); 
     display: flex;
     flex-direction: column;
