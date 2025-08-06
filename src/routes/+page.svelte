@@ -301,7 +301,7 @@
 
   .main-content {
     flex: 1;
-    background: transparent; /*rgba(48, 69, 88, 0.35); */
+    background: rgba(48, 69, 88, 0.35);
     backdrop-filter: blur(8px); 
     display: flex;
     flex-direction: column;
