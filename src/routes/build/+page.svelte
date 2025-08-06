@@ -17,6 +17,54 @@
   let modelStates = {}; // { uniqueName: { fileName, position, rotation } }
   let modelCounter = 0; // for unique naming
 
+  let prices = {
+    "trrtx2080.glb": 950,
+    "amdrx6700.glb": 500,
+    "ryzencpu.glb": 530,
+    "ryzen5cpu.glb": 85,
+    "micronddr1ramstickglb.glb": 80,
+    "corsairvengeancelpxramstick.glb": 70,
+    "motherboardASUS.glb": 200,
+  };
+
+  const snapZones = {
+    "motherboardASUS.glb": {
+      x: -1.3653, y: 0.0993, z: -2.2767,
+    },
+    "ryzencpu.glb": {
+      x: -1.4570463637792463,
+      y: 1.0682181314378454,
+      z: -2.796765317769244
+    }, 
+    "ryzen5cpu.glb": {
+      x: -1.4570463637792463,
+      y: 1.0682181314378454,
+      z: -2.796765317769244
+    },
+    "trrtx2080.glb": { 
+      x: -0.5572860084615485,
+      y: -1.2930221828070065,
+      z: -1.7132496749086128
+    },
+    "amdrx6700.glb": {
+      x: 0.25306556513890466,
+      y: -1.3144720786000634,
+      z: -0.9050987901947276
+    },
+    "micronddr1ramstickglb.glb": {
+        x: -1.3319190536055183,
+        y: 0.15836441610002672,
+        z: -2.3245060372820676
+    },
+    "corsairvengeancelpxramstick.glb": {
+      x: -1.0658791915092989,
+      y: 0.04372472770539204,
+      z: -2.2785787104168542
+    }
+  };
+  const threshold = 0.5;
+  let currentPrice = 0;
+
   onMount(() => {
     // Setup
     scene = new THREE.Scene();
@@ -68,11 +116,13 @@
 
     dragControls.addEventListener('dragend', (event) => {
       let obj = event.object;
+      console.log(obj.position.x)
+      console.log(obj.position.y)
+      console.log(obj.position.z)
       while (obj.parent && !objects.includes(obj)) {
         obj = obj.parent;
       }
-      const key = obj.name.replace('_group', ''); // unique model key
-
+      const key = obj.name.replace('_group', '');
       if (key && modelStates[key]) {
         modelStates[key].position = {
           x: obj.position.x,
@@ -86,19 +136,25 @@
         };
         localStorage.setItem('sceneState', JSON.stringify(modelStates));
       }
-
-      // Collision snap (unchanged)
-      objects.forEach(other => {
-        if (other !== obj) {
-          const dist = obj.position.distanceTo(other.position);
-          if (dist < 0.5) {
-            obj.position.copy(other.position);
+      requestAnimationFrame(() => {
+        if (snapZones[modelStates[key].fileName]) {
+          const snapTarget = { x: snapZones[modelStates[key].fileName].x, y: snapZones[modelStates[key].fileName].y, z: snapZones[modelStates[key].fileName].z};
+          const dx = obj.position.x - snapTarget.x;
+          const dy = obj.position.y - snapTarget.y;
+          const dz = obj.position.z - snapTarget.z;
+          if (Math.sqrt(dx*dx + dy*dy + dz*dz) < threshold) {
+            obj.position.set(snapTarget.x, snapTarget.y, snapTarget.z);
+            modelStates[key].position = {
+              x: snapTarget.x,
+              y: snapTarget.y,
+              z: snapTarget.z
+            };
+            localStorage.setItem('sceneState', JSON.stringify(modelStates));
           }
         }
+        outlinePass.selectedObjects = [];
+        if (enableOrbit) orbitControls.enabled = true;
       });
-
-      outlinePass.selectedObjects = [];
-      if (enableOrbit) orbitControls.enabled = true;
     });
 
     window.addEventListener('keydown', (event) => {
@@ -112,12 +168,17 @@
           if (parent.parent === scene) {
             scene.remove(parent);
             objects = objects.filter(n => n !== parent);
+            const modelName = parent.name.replace('_group', "")
+            const modelState = modelStates[modelName]
+            currentPrice -= prices[modelState.fileName]
+            console.log(currentPrice)
             delete modelStates[parent.name.replace('_group', '')];
           }
         });
         dragControls.objects = objects;
         outlinePass.selectedObjects = [];
         localStorage.setItem('sceneState', JSON.stringify(modelStates));
+        if (enableOrbit) orbitControls.enabled = true;
       }
     });
 
@@ -130,7 +191,6 @@
 
     window.addEventListener('resize', onWindowResize);
 
-    // Load saved models from localStorage
     const saved = localStorage.getItem('sceneState');
     if (saved) {
       modelStates = JSON.parse(saved);
@@ -146,26 +206,23 @@
 
   function addModel(fileName) {
     const newGroup = new THREE.Group();
+    if (fileName in prices) { 
+      currentPrice += prices[fileName]; 
+    };
     loader.load(fileName, (gltf) => {
       const newModel = gltf.scene;
-      // Assign unique name
       const uniqueName = fileName.replace(/\.[^/.]+$/, "") + "_" + modelCounter++;
       newGroup.name = uniqueName + '_group';
       newModel.name = uniqueName;
       newGroup.add(newModel);
-
-      // If saved state exists, set position/rotation
       const saved = modelStates[uniqueName];
       if (saved) {
         newGroup.position.set(saved.position.x, saved.position.y, saved.position.z);
         newGroup.rotation.set(saved.rotation.x, saved.rotation.y, saved.rotation.z);
       }
-
       scene.add(newGroup);
       objects.push(newGroup);
       dragControls.objects = objects;
-
-      // Save initial state if not present
       if (!modelStates[uniqueName]) {
         modelStates[uniqueName] = {
           fileName,
@@ -200,7 +257,9 @@
   padding: 1rem 0;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
   z-index: 100;
-  }
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
   
 .sidebar button {
   width: 140px;               /* adjust width inside sidebar */
@@ -237,26 +296,30 @@
   font-weight: bold;
   }
 </style>
+
 <div bind:this={container} style="width: 100%; height: 500px;"></div>
 <div class="sidebar">
   <h2 class="sidebar-title">Items for PC</h2>
   <div class='sidebar-section'>
+    <p class='sidebar-label'>Current Price: {currentPrice}</p>
+  </div>
+  <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
-    <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D</button>
-    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X</button>
+    <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D - $530</button>
+    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X - $85</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
-    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4</button>
-    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX</button>
+    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4 - $80</button>
+    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX - $70</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>GPUs</p>
-    <button on:click={() => addModel("trrtx2080.glb")}>RTX 2080ti</button>
-    <button on:click={() => addModel("amdrx6700.glb")}>RX 6700 XT</button>
+    <button on:click={() => addModel("trrtx2080.glb")}>RTX 2080ti - $950</button>
+    <button on:click={() => addModel("amdrx6700.glb")}>RX 6700 XT - $500</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>Motherboards</p>
-    <button on:click={() => addModel("motherboardASUS.glb")}>ASUS x570</button>
+    <button on:click={() => addModel("motherboardASUS.glb")}>ASUS x570 - $200</button>
   </div>
 </div>
