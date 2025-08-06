@@ -15,7 +15,7 @@
 
   let objects = [];
   let modelStates = {}; // { uniqueName: { fileName, position, rotation } }
-  let modelCounter = 0; // for unique naming
+  let modelCounter = 0;
 
   let prices = {
     "trrtx2080.glb": 950,
@@ -28,45 +28,19 @@
   };
 
   const snapZones = {
-    "motherboardASUS.glb": {
-      x: -1.3653, y: 0.0993, z: -2.2767,
-    },
-    "ryzencpu.glb": {
-      x: -1.4570463637792463,
-      y: 1.0682181314378454,
-      z: -2.796765317769244
-    }, 
-    "ryzen5cpu.glb": {
-      x: -1.4570463637792463,
-      y: 1.0682181314378454,
-      z: -2.796765317769244
-    },
-    "trrtx2080.glb": { 
-      x: -0.5572860084615485,
-      y: -1.2930221828070065,
-      z: -1.7132496749086128
-    },
-    "amdrx6700.glb": {
-      x: 0.25306556513890466,
-      y: -1.3144720786000634,
-      z: -0.9050987901947276
-    },
-    "micronddr1ramstickglb.glb": {
-        x: -1.3319190536055183,
-        y: 0.15836441610002672,
-        z: -2.3245060372820676
-    },
-    "corsairvengeancelpxramstick.glb": {
-      x: -1.0658791915092989,
-      y: 0.04372472770539204,
-      z: -2.2785787104168542
-    }
+    "motherboardASUS.glb": { x: -1.3653, y: 0.0993, z: -2.2767 },
+    "ryzencpu.glb": { x: -1.457, y: 1.068, z: -2.796 },
+    "ryzen5cpu.glb": { x: -1.457, y: 1.068, z: -2.796 },
+    "trrtx2080.glb": { x: -0.557, y: -1.293, z: -1.713 },
+    "amdrx6700.glb": { x: 0.253, y: -1.314, z: -0.905 },
+    "micronddr1ramstickglb.glb": { x: -1.331, y: 0.158, z: -2.324 },
+    "corsairvengeancelpxramstick.glb": { x: -1.065, y: 0.043, z: -2.278 }
   };
+
   const threshold = 0.5;
   let currentPrice = 0;
 
   onMount(() => {
-    // Setup
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x79818c);
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -80,11 +54,7 @@
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
-    const outlinePass = new OutlinePass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      scene,
-      camera
-    );
+    const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
     composer.addPass(outlinePass);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -94,10 +64,9 @@
     scene.add(directionalLight);
 
     loader = new GLTFLoader();
-    // Load pc case - NOT draggable, just add it
+
     loader.load('pccase.glb', (gltf) => {
-      const caseModel = gltf.scene;
-      scene.add(caseModel);
+      scene.add(gltf.scene);
     });
 
     orbitControls = new OrbitControls(camera, renderer.domElement);
@@ -106,9 +75,7 @@
 
     dragControls.addEventListener('dragstart', (event) => {
       let obj = event.object;
-      while (obj.parent && !objects.includes(obj)) {
-        obj = obj.parent;
-      }
+      while (obj.parent && !objects.includes(obj)) obj = obj.parent;
       event.object = obj;
       outlinePass.selectedObjects = [event.object];
       orbitControls.enabled = false;
@@ -116,36 +83,23 @@
 
     dragControls.addEventListener('dragend', (event) => {
       let obj = event.object;
-      while (obj.parent && !objects.includes(obj)) {
-        obj = obj.parent;
-      }
+      while (obj.parent && !objects.includes(obj)) obj = obj.parent;
       const key = obj.name.replace('_group', '');
-      if (key && modelStates[key]) {
-        modelStates[key].position = {
-          x: obj.position.x,
-          y: obj.position.y,
-          z: obj.position.z
-        };
-        modelStates[key].rotation = {
-          x: obj.rotation.x,
-          y: obj.rotation.y,
-          z: obj.rotation.z
-        };
+      if (modelStates[key]) {
+        modelStates[key].position = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
+        modelStates[key].rotation = { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z };
         localStorage.setItem('sceneState', JSON.stringify(modelStates));
       }
       requestAnimationFrame(() => {
-        if (snapZones[modelStates[key].fileName]) {
-          const snapTarget = { x: snapZones[modelStates[key].fileName].x, y: snapZones[modelStates[key].fileName].y, z: snapZones[modelStates[key].fileName].z};
+        const file = modelStates[key]?.fileName;
+        const snapTarget = snapZones[file];
+        if (snapTarget) {
           const dx = obj.position.x - snapTarget.x;
           const dy = obj.position.y - snapTarget.y;
           const dz = obj.position.z - snapTarget.z;
-          if (Math.sqrt(dx*dx + dy*dy + dz*dz) < threshold) {
+          if (Math.sqrt(dx * dx + dy * dy + dz * dz) < threshold) {
             obj.position.set(snapTarget.x, snapTarget.y, snapTarget.z);
-            modelStates[key].position = {
-              x: snapTarget.x,
-              y: snapTarget.y,
-              z: snapTarget.z
-            };
+            modelStates[key].position = { ...snapTarget };
             localStorage.setItem('sceneState', JSON.stringify(modelStates));
           }
         }
@@ -159,21 +113,21 @@
         const toRemove = [...outlinePass.selectedObjects];
         toRemove.forEach(object => {
           let parent = object;
-          while (parent.parent && parent.parent !== scene) {
-            parent = parent.parent;
-          }
+          while (parent.parent && parent.parent !== scene) parent = parent.parent;
           if (parent.parent === scene) {
             scene.remove(parent);
             objects = objects.filter(n => n !== parent);
-            const modelName = parent.name.replace('_group', "")
-            const modelState = modelStates[modelName]
-            currentPrice -= prices[modelState.fileName]
-            delete modelStates[parent.name.replace('_group', '')];
+            const modelName = parent.name.replace('_group', '');
+            const modelState = modelStates[modelName];
+            if (modelState) {
+              currentPrice -= prices[modelState.fileName] || 0;
+              delete modelStates[modelName];
+              localStorage.setItem('sceneState', JSON.stringify(modelStates));
+            }
           }
         });
         dragControls.objects = objects;
         outlinePass.selectedObjects = [];
-        localStorage.setItem('sceneState', JSON.stringify(modelStates));
         if (enableOrbit) orbitControls.enabled = true;
       }
     });
@@ -186,11 +140,14 @@
     animate();
 
     window.addEventListener('resize', onWindowResize);
-
+    const savedCounter = localStorage.getItem('modelCounter');
+    if (savedCounter) modelCounter = parseInt(savedCounter);
     const saved = localStorage.getItem('sceneState');
     if (saved) {
       modelStates = JSON.parse(saved);
-      Object.values(modelStates).forEach(({ fileName }) => addModel(fileName));
+      Object.entries(modelStates).forEach(([uniqueName, { fileName }]) => {
+        addModel(fileName, uniqueName);
+      });
     }
   });
 
@@ -200,18 +157,19 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
 
-  function addModel(fileName) {
+  function addModel(fileName, uniqueName = null) {
     const newGroup = new THREE.Group();
-    if (fileName in prices) { 
-      currentPrice += prices[fileName]; 
-    };
+    const name = uniqueName ?? (fileName.replace(/\.[^/.]+$/, "") + "_" + modelCounter++);
+    if (!uniqueName) {
+      localStorage.setItem('modelCounter', modelCounter);
+    }
+    if (fileName in prices) { currentPrice += prices[fileName];} 
     loader.load(fileName, (gltf) => {
       const newModel = gltf.scene;
-      const uniqueName = fileName.replace(/\.[^/.]+$/, "") + "_" + modelCounter++;
-      newGroup.name = uniqueName + '_group';
-      newModel.name = uniqueName;
+      newGroup.name = name + '_group';
+      newModel.name = name;
       newGroup.add(newModel);
-      const saved = modelStates[uniqueName];
+      const saved = modelStates[name];
       if (saved) {
         newGroup.position.set(saved.position.x, saved.position.y, saved.position.z);
         newGroup.rotation.set(saved.rotation.x, saved.rotation.y, saved.rotation.z);
@@ -219,8 +177,8 @@
       scene.add(newGroup);
       objects.push(newGroup);
       dragControls.objects = objects;
-      if (!modelStates[uniqueName]) {
-        modelStates[uniqueName] = {
+      if (!modelStates[name]) {
+        modelStates[name] = {
           fileName,
           position: {
             x: newGroup.position.x,
