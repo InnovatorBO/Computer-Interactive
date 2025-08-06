@@ -17,6 +17,18 @@
   let modelStates = {}; // { uniqueName: { fileName, position, rotation } }
   let modelCounter = 0; // for unique naming
 
+  let prices = {
+    "trrtx2080.glb": 950,
+    "amdrx6700.glb": 500,
+    "ryzencpu.glb": 530,
+    "ryzen5cpu.glb": 85,
+    "micronddr1ramstickglb.glb": 80,
+    "corsairvengeancelpxramstick.glb": 70,
+    "motherboardASUS.glb": 200,
+  };
+
+  let currentPrice = 0;
+
   onMount(() => {
     // Setup
     scene = new THREE.Scene();
@@ -112,6 +124,10 @@
           if (parent.parent === scene) {
             scene.remove(parent);
             objects = objects.filter(n => n !== parent);
+            const modelName = parent.name.replace('_group', "")
+            const modelState = modelStates[modelName]
+            currentPrice -= prices[modelState.fileName]
+            console.log(currentPrice)
             delete modelStates[parent.name.replace('_group', '')];
           }
         });
@@ -146,6 +162,10 @@
 
   function addModel(fileName) {
     const newGroup = new THREE.Group();
+    if (fileName in prices) { 
+      currentPrice += prices[fileName]; 
+    };
+    console.log(currentPrice)
     loader.load(fileName, (gltf) => {
       const newModel = gltf.scene;
       // Assign unique name
@@ -237,9 +257,13 @@
   font-weight: bold;
   }
 </style>
+
 <div bind:this={container} style="width: 100%; height: 500px;"></div>
 <div class="sidebar">
   <h2 class="sidebar-title">Items for PC</h2>
+  <div class='sidebar-section'>
+    <p class='sidebar-label'>Current Price: {currentPrice}</p>
+  </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
     <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D</button>
