@@ -171,6 +171,9 @@
     font-family: inherit;
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   h1 {
@@ -184,6 +187,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     margin-bottom: 40px;
     width: 100%;
   }
@@ -201,12 +205,12 @@
     box-sizing: border-box;
   }
 
-  @media (max-width: 768px) {
+ /* @media (max-width: 768px) {
     .flashcards-content {
       height: 250px;
       padding: 0.5rem;
     }
-  }
+  }*/
 
   .flashcards-content:hover {
     transform: scale(1.02);
@@ -363,25 +367,5 @@
     width: 100%;
     max-width: 600px; 
     align-self: center;
-  }
-
-  @media (max-width: 400px) {
-    .flashcards-buttons {
-      align-items: center;
-    }
-    
-    .flip-btn {
-      order: 0;
-      width: 100%;
-      max-width: 300px;
-      margin-bottom: 0.5rem;
-    }
-    
-    .prev-btn, .next-btn {
-      order: 1;
-      width: 48%;
-      max-width: none;
-    }
-    
   }
 </style>
