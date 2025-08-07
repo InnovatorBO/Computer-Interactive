@@ -1391,7 +1391,7 @@
 
   .help-button {
     position: absolute;
-    top: 95px;
+    top: 100px;
     right: 5px;
     width: 50px;
     height: 50px;
