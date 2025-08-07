@@ -607,7 +607,9 @@
 <div class="page-container">
   <h1>Interactive PC Builder</h1>
   <p class="intro-text">Build your dream PC by selecting components and see how they affect performance.</p>
-  
+
+
+  <!-- 3D Interactive Model using model-viewer -->
   <div class="model-section">
     <div class="model-container">
       {#if isBrowser}
@@ -869,8 +871,7 @@
     margin-bottom: 0.5rem;
     color: #333;
     font-size: 2.5rem;
-  }
-  
+  }  
   .intro-text {
     text-align: center;
     max-width: 600px;

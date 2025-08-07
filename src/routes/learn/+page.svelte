@@ -1,5 +1,5 @@
 <script lang="ts">
-  let activePopup: string | null = null;
+  let activePopup: string | null = $state(null);
 
   function showPopup(popupId: string): void {
     if (activePopup) {
@@ -23,7 +23,7 @@
       closePopup();
     }
   }
-
+    
   let quizMode = $state(false);
   let currentQuestion = $state(0);
   let score = $state(0);
@@ -31,8 +31,9 @@
   let selectedAnswer = $state<number | null>(null);
   let quizCompleted = $state(false);
   let showCorrectAnswer = $state(false);
+  let currentQuizQuestions = $state<any[]>([]);
 
-  const quizQuestions = [
+  const questionBank = [
     {
       question: "What is the main function of the CPU?",
       options: [
@@ -87,10 +88,237 @@
       ],
       correct: 2,
       explanation: "RAM is volatile memory, meaning it loses all data when the computer is turned off."
+    },
+    {
+      question: "What does CPU stand for?",
+      options: [
+        "Central Progress Unit",
+        "Core Printing Utility",
+        "Central Processing Unit",
+        "Computer Primitive User"
+      ],
+      correct: 2,
+      explanation: "CPU stands for Central Processing Unit, which is the main component that executes instructions in a computer."
+    },
+    {
+      question: "What is the main function of RAM?",
+      options: [
+        "To render graphics",
+        "To store data permanently",
+        "To power the computer",
+        "To provide temporary storage to the computer"
+      ],
+      correct: 3,
+      explanation: "RAM provides temporary storage for data that the CPU needs to access quickly while programs are running."
+    },
+    {
+      question: "Which of these is a type of long-term storage?",
+      options: [
+        "RAM",
+        "SSD",
+        "USB",
+        "Cache"
+      ],
+      correct: 1,
+      explanation: "SSD (Solid State Drive) is a type of long-term storage that uses flash memory for faster access compared to traditional HDDs."
+    },
+    {
+      question: "Which of these components is NOT typically found in a motherboard?",
+      options: [
+        "CPU socket",
+        "Chipset",
+        "PSU",
+        "VRM"
+      ],
+      correct: 2,
+      explanation: "The PSU (Power Supply Unit) is not part of the motherboard; it provides power to the entire computer system."
+    },
+    {
+      question: "What can happen if a computer’s cooling system fails?",
+      options: [
+        "The hard drive speeds up",
+        "The GPU becomes louder",
+        "The system can overheat and shut down",
+        "The brightness increases"
+      ],
+      correct: 2,
+      explanation: "If the cooling system fails, the computer can overheat, leading to potential damage and automatic shutdown to prevent further issues."
+    },
+    {
+      question: "Which of the following would most likely be stored in RAM temporarily?",
+      options: [
+        "An open document being edited",
+        "Saved Wi-Fi passwords",
+        "Operating system files on your SSD",
+        "System BIOS configurations"
+      ],
+      correct: 0,
+      explanation: "An open document being edited is stored in RAM temporarily so that it can be accessed quickly by the CPU while you are working on it."
+    },
+    {
+      question: "Which of these upgrades would be the most helpful for smoother performance in rendering high-resolution images?",
+      options: [
+        "Upgrading from 8GB to 16GB of RAM",
+        "Installing a more powerful GPU",
+        "Adding a second monitor",
+        "Replacing the CPU with one that has fewer cores"
+      ],
+      correct: 1,
+      explanation: "Installing a more powerful GPU would significantly improve performance in rendering high-resolution images, as the GPU is specifically designed for graphics processing."
+    },
+    {
+      question: "What type of memory is typically built directly into the CPU for fast access?",
+      options: [
+        "RAM",
+        "HDD",
+        "ROM",
+        "Cache memory"
+      ],
+      correct: 3,
+      explanation: "Cache memory is a small amount of high-speed memory built directly into the CPU to store frequently accessed data for quick retrieval."
+    },
+    {
+      question: "Which motherboard component regulates power to the CPU?",
+      options: [
+        "Northbridge",
+        "Power connector",
+        "VRM",
+        "I/O ports"
+      ],
+      correct: 2,
+      explanation: "VRM (Voltage Regulator Module) regulates the voltage supplied to the CPU, ensuring it receives stable power for optimal performance." 
+    },
+    {
+      question: "The core of a SSD, which stores data by trapping electrical charges in memory cells, is called:",
+      options: [
+        "RAM",
+        "NAND flash memory",
+        "Data bus",
+        "Single-core CPU"
+      ],
+      correct: 1,
+      explanation: "NAND flash memory is the core technology used in SSDs to store data by trapping electrical charges in memory cells, allowing for fast read and write speeds."
+    },
+    {
+      question: "The CPU’s processor speed is measured in:",
+      options: [
+        "Revolutions per minute (RPM)",
+        "Terabytes (TB)",
+        "Cubic feet per minute (CFM)",
+        "Gigahertz (GHz)"
+      ],
+      correct: 3,
+      explanation: "The CPU’s processor speed is measured in gigahertz (GHz), which indicates how many billions of cycles per second the CPU can perform."
+    },
+    {
+      question: "What does a heat sink do?",
+      options: [
+        "Generate power",
+        "Store data",
+        "Transfer heat away from components",
+        "Render images"
+      ],
+      correct: 2,
+      explanation: "A heat sink transfers heat away from components like the CPU and GPU to prevent overheating, ensuring stable performance and longevity."
+    },
+    {
+      question: "What type of bus carries data between the CPU and RAM?",
+      options: [
+        "Power bus",
+        "Data bus",
+        "Control bus",
+        "Address bus"
+      ],
+      correct: 1,
+      explanation: "The data bus carries data between the CPU and RAM, allowing the CPU to read and write data stored in memory."
+    },
+    {
+      question: "Which component is essential for displaying images on your monitor?",
+      options: [
+        "SSD",
+        "GPU",
+        "PSU",
+        "RAM"
+      ],
+      correct: 1,
+      explanation: "The GPU (Graphics Processing Unit) is essential for rendering and displaying images on your monitor, handling all visual processing tasks."
+    },
+    {
+      question: "Which type of memory is used to store textures and shaders in GPUs?",
+      options: [
+        "VRAM (Video RAM)",
+        "ROM (Read-Only Memory)",
+        "DRAM (Dynamic RAM)",
+        "SRAM (Static RAM)"
+      ],
+      correct: 0,
+      explanation: "VRAM (Video RAM) is used in GPUs to store textures, shaders, and other graphical data that the GPU needs to access quickly for rendering images and videos."
+    },
+    {
+      question: "What does BIOS do when you start a computer?",
+      options: [
+        "Deletes all temporary files",
+        "Configures hardware and loads the operating system",
+        "Connects the GPU to the monitor",
+        "Creates a password for your computer"
+      ],
+      correct: 1,
+      explanation: "BIOS (Basic Input/Output System) configures hardware components and loads the operating system into RAM when you start your computer, allowing it to boot up properly."
+    },
+    {
+      question: "Which HDD component is directly responsible for accessing and modifying data on the spinning platters?",
+      options: [
+        "Spindle",
+        "Actuator",
+        "Read/write heads",
+        "Controller"
+      ],
+      correct: 2,
+      explanation: "The read/write heads are directly responsible for accessing and modifying data on the spinning platters of an HDD, moving across the surface to read or write data as needed."
+    },
+    {
+      question: "Where do you plug in a device like a mouse or a keyboard?",
+      options: [
+        "GPU",
+        "CPU socket",
+        "I/O port",
+        "RAM slot"
+      ],
+      correct: 2,
+      explanation: "I/O ports are used to connect peripherals like a mouse or keyboard to the computer, allowing them to communicate with the CPU and other components."
+    },
+    {
+      question: "What is the function of thermal paste in a computer’s cooling system?",
+      options: [
+        "To regulate voltage from the PSU",
+        "To keep the computer warm in colder temperatures",
+        "To fill small gaps between the CPU and the heat sink",
+        "To replace the need for fans"
+      ],
+      correct: 2,
+      explanation: "Thermal paste fills microscopic gaps between the CPU and the heat sink, improving heat transfer and helping to keep the CPU cool during operation."
+    },
+    {
+      question: "Which component connects all parts of the computer together?",
+      options: [
+        "Motherboard",
+        "CPU",
+        "PSU",
+        "Platters"
+      ],
+      correct: 0,
+      explanation: "The motherboard connects all parts of the computer together, allowing communication between the CPU, RAM, GPU, storage drives, and other components."
     }
+
   ];
 
+  function selectRandomQuestions() {
+    const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5);
+  }
+
   function startQuiz() {
+    currentQuizQuestions = selectRandomQuestions();
     quizMode = true;
     currentQuestion = 0;
     score = 0;
@@ -99,30 +327,30 @@
     quizCompleted = false;
     showCorrectAnswer = false;
   }
-
+  
   function selectAnswer(answerIndex: number) {
     selectedAnswer = answerIndex;
   }
-
+  
   function submitAnswer() {
-    if (selectedAnswer === null) return;
+      if (selectedAnswer === null) return;
     
-    showCorrectAnswer = true;
+      showCorrectAnswer = true;
     
-    if (selectedAnswer === quizQuestions[currentQuestion].correct) {
-      score++;
-    }
+      if (selectedAnswer === currentQuizQuestions[currentQuestion].correct) {
+        score++;
+      }
   }
-
+  
   function continueToNext() {
-    if (currentQuestion < quizQuestions.length - 1) {
-      currentQuestion++;
-      selectedAnswer = null;
-      showCorrectAnswer = false;
-    } else {
-      showResults = true;
-      quizCompleted = true;
-    }
+    if (currentQuestion < currentQuizQuestions.length - 1) {
+        currentQuestion++;
+        selectedAnswer = null;
+        showCorrectAnswer = false;
+      } else {
+        showResults = true;
+        quizCompleted = true;
+      }
   }
 
   function resetQuiz() {
@@ -133,7 +361,9 @@
     selectedAnswer = null;
     quizCompleted = false;
     showCorrectAnswer = false;
+    currentQuizQuestions = [];
   }
+
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -149,6 +379,9 @@
       <button class="info-button" on:click={() => showPopup('ram')}>▼ Click for RAM info</button>
       <button class="info-button" on:click={() => showPopup('gpu')}>▼ Click for GPU info</button>
       <button class="info-button" on:click={() => showPopup('storage')}>▼ Click for Storage info</button>
+      <button class="info-button" on:click={() => showPopup('psu')}>▼ Click for PSU info</button>
+      <button class="info-button" on:click={() => showPopup('motherboard')}>▼ Click for motherboard info</button>
+      
     </div>
     
     <div class="computer-display">
@@ -162,9 +395,9 @@
         
         <div class="component cpu" on:click={() => showPopup('cpu')}>CPU</div>
         <div class="component ram" on:click={() => showPopup('ram')}>RAM</div>
-        <div class="component motherboard">MOTHERBOARD</div>
+        <div class="component motherboard" on:click={() => showPopup('motherboard')}>MOTHERBOARD</div>
         <div class="component gpu" on:click={() => showPopup('gpu')}>VIDEO CARD</div>
-        <div class="component psu">PSU</div>
+        <div class="component psu" on:click={() => showPopup('psu')} >PSU</div>
         <div class="component storage" on:click={() => showPopup('storage')}>HARD DRIVE</div>
       </div>
     </div>
@@ -179,6 +412,26 @@
       <button class="popup-close" on:click={closePopup}>&times;</button>
       <h2>Central Processing Unit (CPU)</h2>
       <p>The CPU is the brain of your computer. It executes instructions from programs and performs calculations. Modern CPUs have multiple cores that can handle different tasks simultaneously, making your computer faster and more efficient. The CPU's speed is measured in gigahertz (GHz), and it works closely with RAM to process data quickly.</p>
+    </div>
+  </div>
+{/if}
+
+{#if activePopup === 'motherboard'}
+  <div class="popup" on:click={handleBackdropClick}>
+    <div class="popup-content">
+      <button class="popup-close" on:click={closePopup}>&times;</button>
+      <h2>Motherboard</h2>
+      <p>TThe motherboard is the primary printed circuit board (PCB) in a computer. It’s basically the backbone of a computer, and enables all parts to work together. It connects and allows communication between all the different hardware components (such as the CPU, RAM, storage devices, GPU, peripherals).</p>
+    </div>
+  </div>
+{/if}
+
+{#if activePopup === 'psu'}
+  <div class="popup" on:click={handleBackdropClick}>
+    <div class="popup-content">
+      <button class="popup-close" on:click={closePopup}>&times;</button>
+      <h2>Power Supply Unit (PSU)</h2>
+      <p>TA Power Supply Unit (PSU) converts electricity from a wall outlet into usable power for a computer’s internal components. It distributes the correct voltage and current to parts like the motherboard, CPU, GPU, and storage devices.</p>
     </div>
   </div>
 {/if}
@@ -235,22 +488,22 @@
     {:else if !showResults}
       <div class="quiz-question">
         <div class="quiz-header">
-          <h2>Question {currentQuestion + 1} of {quizQuestions.length}</h2>
+          <h2>Question {currentQuestion + 1} of {currentQuizQuestions.length}</h2>
           <div class="quiz-progress">
             <div class="progress-bar">
-              <div class="progress-fill" style="width: {((currentQuestion + 1) / quizQuestions.length) * 100}%"></div>
+              <div class="progress-fill" style="width: {((currentQuestion + 1) / currentQuizQuestions.length) * 100}%"></div>
             </div>
             <span class="score">Score: {score}/{currentQuestion}</span>
           </div>
         </div>
         
         <div class="question-content">
-          <h3>{quizQuestions[currentQuestion].question}</h3>
+          <h3>{currentQuizQuestions[currentQuestion].question}</h3>
           
           <div class="answer-options">
-            {#each quizQuestions[currentQuestion].options as option, index}
+            {#each currentQuizQuestions[currentQuestion].options as option, index}
               <button 
-                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === quizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== quizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
+                class="answer-btn {selectedAnswer === index ? 'selected' : ''} {showCorrectAnswer && index === currentQuizQuestions[currentQuestion].correct ? 'correct' : ''} {showCorrectAnswer && selectedAnswer === index && index !== currentQuizQuestions[currentQuestion].correct ? 'incorrect' : ''}"
                 on:click={() => selectAnswer(index)}
                 disabled={showCorrectAnswer}
               >
@@ -261,8 +514,8 @@
           
           {#if showCorrectAnswer}
             <div class="correct-answer">
-              <h4>Correct Answer: {String.fromCharCode(65 + quizQuestions[currentQuestion].correct)}. {quizQuestions[currentQuestion].options[quizQuestions[currentQuestion].correct]}</h4>
-              <p>{quizQuestions[currentQuestion].explanation}</p>
+              <h4>Correct Answer: {String.fromCharCode(65 + currentQuizQuestions[currentQuestion].correct)}. {currentQuizQuestions[currentQuestion].options[currentQuizQuestions[currentQuestion].correct]}</h4>
+              <p>{currentQuizQuestions[currentQuestion].explanation}</p>
             </div>
           {/if}
           
@@ -273,7 +526,7 @@
               </button>
             {:else if showCorrectAnswer}
               <button class="continue-btn" on:click={continueToNext}>
-                {currentQuestion === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                {currentQuestion === currentQuizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
               </button>
             {/if}
           </div>
@@ -284,16 +537,16 @@
         <h2>Quiz Complete!</h2>
         <div class="results-content">
           <div class="score-display">
-            <h3>Your Score: {score}/{quizQuestions.length}</h3>
+            <h3>Your Score: {score}/{currentQuizQuestions.length}</h3>
             <div class="score-percentage">
-              {Math.round((score / quizQuestions.length) * 100)}%
+              {Math.round((score / currentQuizQuestions.length) * 100)}%
             </div>
             <div class="score-message">
-              {#if score === quizQuestions.length}
+              {#if score === currentQuizQuestions.length}
                 Perfect, you're a computer expert! 
-              {:else if score >= quizQuestions.length * 0.8}
+              {:else if score >= currentQuizQuestions.length * 0.8}
                 Great job! 
-              {:else if score >= quizQuestions.length * 0.6}
+              {:else if score >= currentQuizQuestions.length * 0.6}
                 Good work! Keep learning! 
               {:else}
                 Keep studying with our interactive model and flashcards!
@@ -314,10 +567,6 @@
     padding: 0;
     box-sizing: border-box;
   }
-
-  :global(html, body) {
-    font-family: Arial, sans-serif;
-}
 
 .explore-container {
     min-height: 100vh;
@@ -539,6 +788,15 @@
   .help-button:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  .component:focus {
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+  }
+
+  .popup:focus-within {
+    outline: none;
   }
 
   .popup {
