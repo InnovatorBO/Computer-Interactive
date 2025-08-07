@@ -94,7 +94,7 @@
   }
 
   .nav-links a.active {
-    background: linear-gradient(135deg, #0496ada1, #02c75ba4); /*#02c75b;*/
+    background: linear-gradient(45deg, #4CAF50, #45a049); /*#02c75b;*/
     color: white;
   }
 
