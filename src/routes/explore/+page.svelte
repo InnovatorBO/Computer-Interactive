@@ -256,15 +256,17 @@
   }
 
   .info-box button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 1.2em;
-    color: #333;
-    cursor: pointer;
+  position: absolute;
+  color: black;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  border: 1px solid #ccc;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  animation: popupSlide 0.3s ease-out;
   }
 
   .grid-section {
@@ -302,7 +304,7 @@
   }
 </style>
 
-<!-- 3D Scene -->
+<h2>Learn about the different parts of a computer by clicking on the model!</h2>
 <div bind:this={container} style="width:100%; height:500px; position:relative;">
   {#if showInfo}
     <div class="info-box" style="left: {infoLeft}px; top: {infoTop}px;">
