@@ -20,7 +20,31 @@
   let isModelLoaded = false;
   let loadingProgress = 0;
   let loadingError = false;
+  let activePopup: string | null = null;
   
+  function showPopup(popupId: string): void {
+    if (activePopup) {
+      closePopup();
+    }
+    activePopup = popupId;
+  }
+
+  function closePopup(): void {
+    activePopup = null;
+  }
+
+  function handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      closePopup();
+    }
+  }
+
+  function handleBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      closePopup();
+    }
+  }
+
   // Camera and zoom settings (easy to adjust)
   let cameraSettings = {
     initialPosition: { x: 0, y: 1, z: 3 }, // Start closer to the model
@@ -608,6 +632,18 @@
   <h1>Interactive PC Builder</h1>
   <p class="intro-text">Build your dream PC by selecting components and see how they affect performance.</p>
 
+  <div class="help-btn">
+    <button class="help-button" on:click={() => showPopup('help')}>?</button>
+    {#if activePopup === 'help'}
+      <div class="popup" on:click={handleBackdropClick}>
+        <div class="popup-content">
+          <button class="popup-close" on:click={closePopup}>&times;</button>
+          <h2>How to Use This Builder</h2>
+          <p>Welcome to the Interactive PC Builder! This page allows you to visualize how your computer’s performance changes with different budgets. In the "PC Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to build your dream computer!</p>
+        </div>
+      </div>
+    {/if}
+  </div>
 
   <!-- 3D Interactive Model using model-viewer -->
   <div class="model-section">
@@ -863,20 +899,20 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /*font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;*/
   }
   
   h1 {
     text-align: center;
     margin-bottom: 0.5rem;
-    color: #333;
+    color: #ffffff;
     font-size: 2.5rem;
   }  
   .intro-text {
     text-align: center;
     max-width: 600px;
     margin: 0 auto 2rem;
-    color: #666;
+    color: #888;
     font-size: 1.1rem;
   }
   
@@ -1042,6 +1078,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: #333;
   }
   
   .legend-color {
@@ -1310,4 +1347,97 @@
       width: calc(100% - 20px);
     }
   }
+
+  .help-button {
+    position: absolute;
+    top: 100px;
+    right: 5px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .help-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  .popup:focus-within {
+    outline: none;
+  }
+
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .popup-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: popupSlide 0.3s ease-out;
+  }
+
+  @keyframes popupSlide {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s ease;
+  }
+
+  .popup-close:hover {
+    color: #333;
+  }
+
+  .popup h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
+    border: none;
+  }
+
+  .popup p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 16px;
+    text-align: left;
+  }
+
 </style>
