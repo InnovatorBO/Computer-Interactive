@@ -371,16 +371,14 @@
 
   .info-box button {
   position: absolute;
-  color: black;
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  max-width: 500px;
-  width: 90%;
-  border: 1px solid #ccc;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  z-index: 9999;
-  animation: popupSlide 0.3s ease-out;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
   }
 
   .grid-section {
