@@ -44,7 +44,7 @@
       closePopup();
     }
   }
-  
+
   // Camera and zoom settings (easy to adjust)
   let cameraSettings = {
     initialPosition: { x: 0, y: 1, z: 3 }, // Start closer to the model
@@ -638,8 +638,8 @@
       <div class="popup" on:click={handleBackdropClick}>
         <div class="popup-content">
           <button class="popup-close" on:click={closePopup}>&times;</button>
-          <h2>How to Use This Simulator</h2>
-          <p>Welcome to the Computer Performance Simulator! This page allows you to visualize how your computer’s performance changes with different budgets. In the “Hardware Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to see if you can achieve optimal performance!</p>
+          <h2>How to Use This Builder</h2>
+          <p>Welcome to the Interactive PC Builder! This page allows you to visualize how your computer’s performance changes with different budgets. In the "PC Components” section, choose between different CPU, RAM, GPU, and storage components. Then, look in the “Performance Analysis” section to see your performace scores for gaming, productivity, multitasking, and more. Try experimenting with different types, brands, and prices to build your dream computer!</p>
         </div>
       </div>
     {/if}
@@ -899,20 +899,20 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /*font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;*/
   }
   
   h1 {
     text-align: center;
     margin-bottom: 0.5rem;
-    color: #333;
+    color: #ffffff;
     font-size: 2.5rem;
   }  
   .intro-text {
     text-align: center;
     max-width: 600px;
     margin: 0 auto 2rem;
-    color: #666;
+    color: #888;
     font-size: 1.1rem;
   }
   
@@ -1078,6 +1078,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: #333;
   }
   
   .legend-color {

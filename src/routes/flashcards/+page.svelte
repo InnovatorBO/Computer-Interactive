@@ -201,7 +201,7 @@
     box-sizing: border-box;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .flashcards-content {
       height: 250px;
       padding: 0.5rem;
