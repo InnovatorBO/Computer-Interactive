@@ -24,6 +24,7 @@
 
   <footer class="footer">
     <p>© 2025 Branchout – Credits, copyright and legal stuff</p>
+    <a href="/attributions.html" target="_blank" rel="noopener">Attributions</a>
   </footer>
 </div>
 
