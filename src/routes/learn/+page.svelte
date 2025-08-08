@@ -590,7 +590,9 @@
   }
 
   .explore-container {
-    height: 100vh;
+    height: auto;
+    min-height: 100vh;
+    max-height: 120vh;
     width: 100vw;
     background: #304357;
     display: flex;
