@@ -22,23 +22,25 @@
     "amdrx6700.glb": 500,
     "ryzencpu.glb": 530,
     "ryzen5cpu.glb": 85,
-    "micronddr1ramstickglb.glb": 80,
-    "corsairvengeancelpxramstick.glb": 70,
+    "micronddr1ramstickglb.glb": 120,
+    "corsairvengeancelpxramstick.glb": 150,
     "motherboardASUS.glb": 200,
     "samsung970evossd.glb": 140,
     "seasonicfocusgx.glb": 130,
+    "samsung850evossd.glb": 110,
   };
 
   const snapZones = {
     "motherboardASUS.glb": { x: -1.3653, y: 0.0993, z: -2.2767 },
-    "ryzencpu.glb": { x: -1.457, y: 1.068, z: -2.796 },
+    "ryzencpu.glb": { x: -5.408834567304454,y: 2.2095675468358102, z: -2.0114841737813265},
     "ryzen5cpu.glb": { x: -1.457, y: 1.068, z: -2.796 },
     "trrtx2080.glb": { x: -0.557, y: -1.293, z: -1.713 },
     "amdrx6700.glb": { x: 0.253, y: -1.314, z: -0.905 },
     "micronddr1ramstickglb.glb": { x: -1.331, y: 0.158, z: -2.324 },
     "corsairvengeancelpxramstick.glb": { x: -1.065, y: 0.043, z: -2.278 },
-    "samsung970evossd.glb": {x:-1.3329030701426707, y: 0.18321479045575084, z: -2.079499169144013},
-    "seasonicfocusgx.glb": {x: 0.5971038194613046, y: -4.265771180636449, z: -1.0095824674548597}
+    "samsung970evossd.glb": {x: -8.797829101545494,y: -0.0673209673874049, z: 0.39923733827264174},
+    "seasonicfocusgx.glb": {x: 0.5971038194613046, y: -4.265771180636449, z: -1.0095824674548597},
+    'samsung850evossd.glb': {x: -2.9137121104435666, y: 4.480273781182386, z: -1.0596690956755301},
   };
 
   const threshold = 0.5;
@@ -87,6 +89,9 @@
 
     dragControls.addEventListener('dragend', (event) => {
       let obj = event.object;
+      console.log(obj.position.x)
+      console.log(obj.position.y)
+      console.log(obj.position.z)
       while (obj.parent && !objects.includes(obj)) obj = obj.parent;
       const key = obj.name.replace('_group', '');
       if (modelStates[key]) {
@@ -270,12 +275,12 @@
   <div class='sidebar-section'>
     <p class='sidebar-label'>CPUs</p>
     <button on:click={() => addModel("ryzencpu.glb")}>AMD Ryzen 9 9950X3D - $530</button>
-    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X - $85</button>
+    <button on:click={() => addModel("ryzen5cpu.glb")}>AMD Ryzen 5 3600X - $140</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>RAM</p>
-    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Micron DDR4 - $80</button>
-    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX - $70</button>
+    <button on:click={() => addModel("micronddr1ramstickglb.glb")}>Crucial DDR4/3200 - $120</button>
+    <button on:click={() => addModel("corsairvengeancelpxramstick.glb")}>Corsair Vengeance LPX - $150</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>GPUs</p>
@@ -289,6 +294,7 @@
   <div class='sidebar-section'>
     <p class='sidebar-label'>SSDs</p>
     <button on:click={() => addModel("samsung970evossd.glb")}>Samsung 970 Evo - $140</button>
+    <button on:click={() => addModel("samsung850evossd.glb")}>Samsung 850 Evo - $110</button>
   </div>
   <div class='sidebar-section'>
     <p class='sidebar-label'>Motherboards</p>
