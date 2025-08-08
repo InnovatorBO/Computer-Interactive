@@ -169,6 +169,11 @@
     padding: 20px;
     color: white;
     font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   h1 {
@@ -182,11 +187,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     margin-bottom: 40px;
+    width: 100%;
   }
 
   .flashcards-content {
-    width: 500px;
+    width: 100%;
+    max-width: 500px;
     height: 300px;
     perspective: 1000px;
     cursor: pointer;
@@ -194,7 +202,15 @@
     font-size: 1.5rem;
     transition: transform 0.3s ease;
     text-align: center;
+    box-sizing: border-box;
   }
+
+ /* @media (max-width: 768px) {
+    .flashcards-content {
+      height: 250px;
+      padding: 0.5rem;
+    }
+  }*/
 
   .flashcards-content:hover {
     transform: scale(1.02);
@@ -225,6 +241,9 @@
     align-items: center;
     padding: 1rem;
     backface-visibility: hidden;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-y: auto;
   }
 
   .flashcard-front {
@@ -239,15 +258,18 @@
   /* Buttons for main flashcards */
   .flashcards-buttons {
     display: flex;
-    gap: 1rem;
-    width: 500px;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 500px;
     margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .prev-btn, .next-btn {
     font-weight: 550;
     margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem;
     background: #000;
     color: #ffffff;
     border: none;
@@ -255,6 +277,8 @@
     font-size: 1rem;
     cursor: pointer;
     flex: 1;
+    min-width: 80px;
+    max-width: 100px;
     transition: all 0.3s ease;
   }
 
@@ -266,7 +290,7 @@
   .flip-btn {
     font-weight: 550;
     margin-top: 1rem;
-    padding: 0.75rem 7rem;
+    padding: 0.75rem;
     background: linear-gradient(45deg, #4a90e2, #357abd);
     transition: all 0.3s ease;
     color: white;
@@ -274,7 +298,8 @@
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
-    flex: 1;
+    flex: 2;
+    min-width: 80px;
   }
 
   .flip-btn:hover {

@@ -568,12 +568,6 @@
     box-sizing: border-box;
   }
 
-.explore-container {
-    min-height: 100vh;
-    width: 100%;
-    background: #304357;
-}
-
   .page-container {
     position: absolute;
     left: 50%;
@@ -596,7 +590,9 @@
   }
 
   .explore-container {
-    height: 100vh;
+    height: auto;
+    min-height: 100vh;
+    max-height: 120vh;
     width: 100vw;
     background: #304357;
     display: flex;
