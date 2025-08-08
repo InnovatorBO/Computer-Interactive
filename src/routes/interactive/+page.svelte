@@ -1,452 +1,57 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import * as THREE from 'three';
-  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-  import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
   
   let title = 'Computer Performance Simulator';
-  let canvasContainer: HTMLDivElement;
-  let scene: THREE.Scene;
-  let camera: THREE.PerspectiveCamera;
-  let renderer: THREE.WebGLRenderer;
-  let controls: any;
-  let pcCase: THREE.Group;
-  let cpuModel: THREE.Mesh;
-  let gpuModel: THREE.Mesh;
-  let ramModel: THREE.Mesh;
-  let storageModel: THREE.Mesh;
   let isBrowser = browser;
   
-  // Initialize Three.js 3D scene
-  onMount(async () => {
-    if (typeof window !== 'undefined' && canvasContainer) {
-      await initThreeJS();
-      calculatePerformance();
+  // Component hover states
+  let hoveredComponent = '';
+  
+  // Component positions for 2D diagram
+  const componentPositions = {
+    cpu: { x: 200, y: 150, width: 80, height: 60 },
+    gpu: { x: 100, y: 250, width: 120, height: 40 },
+    ram: { x: 350, y: 100, width: 40, height: 100 },
+    storage: { x: 100, y: 350, width: 100, height: 30 },
+    motherboard: { x: 150, y: 200, width: 200, height: 120 },
+    psu: { x: 400, y: 300, width: 60, height: 80 }
+  };
+
+  // Image mapping for component images
+  const componentImages = {
+    cpu: {
+      'Intel Core i3-10100': '/parts/cpu-i3-10100.svg',
+      'Intel Core i5-10400': '/parts/cpu-i5-10400.svg',
+      'Intel Core i7-10700': '/parts/cpu-i7-10700.svg',
+      'Intel Core i9-10900': '/parts/cpu-i9-10900.svg',
+      'AMD Ryzen 5 3600': '/parts/cpu-ryzen5-3600.svg',
+      'AMD Ryzen 7 3700X': '/parts/cpu-ryzen7-3700x.svg'
+    },
+    gpu: {
+      'NVIDIA GTX 1650': '/parts/gpu-gtx1650.svg',
+      'NVIDIA GTX 1660 Super': '/parts/gpu-gtx1660super.svg',
+      'NVIDIA RTX 3060': '/parts/gpu-rtx3060.svg',
+      'NVIDIA RTX 3070': '/parts/gpu-rtx3070.svg',
+      'AMD RX 5600 XT': '/parts/gpu-rx5600xt.svg',
+      'AMD RX 6700 XT': '/parts/gpu-rx6700xt.svg'
+    },
+    ram: {
+      'DDR4-2400': '/parts/ram-ddr4-2400.svg',
+      'DDR4-2666': '/parts/ram-ddr4-2666.svg',
+      'DDR4-3200': '/parts/ram-ddr4-3200.svg',
+      'DDR4-3600': '/parts/ram-ddr4-3600.svg',
+      'DDR4-4000': '/parts/ram-ddr4-4000.svg'
+    },
+    storage: {
+      'WD Blue HDD': '/parts/storage-wd-blue.svg',
+      'Samsung 860 EVO': '/parts/storage-860-evo.svg',
+      'Samsung 970 EVO': '/parts/storage-970-evo.svg',
+      'Samsung 980 Pro': '/parts/storage-980-pro.svg'
     }
-  });
+  };
 
-  async function initThreeJS() {
-    // Scene setup
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a1a);
-
-    // Camera setup
-    camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 5);
-
-    // Renderer setup
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    canvasContainer.appendChild(renderer.domElement);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
-
-    // Create PC case
-    createPCCase();
-    await loadRealisticModels();
-
-    // Animation loop
-    animate();
-
-    // Handle window resize
-    window.addEventListener('resize', onWindowResize);
-  }
-
-  function createPCCase() {
-    pcCase = new THREE.Group();
-
-    // Create a more realistic PC case with better proportions
-    const caseGeometry = new THREE.BoxGeometry(4, 3, 2);
-    const caseMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x2c3e50,
-      metalness: 0.3,
-      roughness: 0.7
-    });
-    const caseMesh = new THREE.Mesh(caseGeometry, caseMaterial);
-    caseMesh.castShadow = true;
-    caseMesh.receiveShadow = true;
-    pcCase.add(caseMesh);
-
-    // Add front panel with mesh vents
-    const frontPanelGeometry = new THREE.PlaneGeometry(3.8, 2.8);
-    const frontMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x34495e,
-      metalness: 0.2,
-      roughness: 0.8
-    });
-    const frontPanel = new THREE.Mesh(frontPanelGeometry, frontMaterial);
-    frontPanel.position.set(0, 0, 1.1);
-    pcCase.add(frontPanel);
-
-    // Add mesh vents to front panel
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 4; j++) {
-        const ventGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.05);
-        const ventMaterial = new THREE.MeshStandardMaterial({ 
-          color: 0x1a1a1a,
-          metalness: 0.1,
-          roughness: 0.9
-        });
-        const vent = new THREE.Mesh(ventGeometry, ventMaterial);
-        vent.position.set(-1.5 + i * 0.6, -1 + j * 0.6, 1.15);
-        pcCase.add(vent);
-      }
-    }
-
-    // Add side panel with window
-    const sideGeometry = new THREE.PlaneGeometry(2, 3);
-    const sideMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x34495e, 
-      transparent: true, 
-      opacity: 0.3,
-      metalness: 0.1,
-      roughness: 0.9
-    });
-    const sideMesh = new THREE.Mesh(sideGeometry, sideMaterial);
-    sideMesh.position.set(2.1, 0, 0);
-    pcCase.add(sideMesh);
-
-    // Add back panel with I/O ports
-    const backPanelGeometry = new THREE.PlaneGeometry(3.8, 2.8);
-    const backMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x34495e,
-      metalness: 0.2,
-      roughness: 0.8
-    });
-    const backPanel = new THREE.Mesh(backPanelGeometry, backMaterial);
-    backPanel.position.set(0, 0, -1.1);
-    pcCase.add(backPanel);
-
-    // Add I/O ports to back panel
-    const ioPortGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.05);
-    const ioMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x1a1a1a,
-      metalness: 0.1,
-      roughness: 0.9
-    });
-    for (let i = 0; i < 8; i++) {
-      const ioPort = new THREE.Mesh(ioPortGeometry, ioMaterial);
-      ioPort.position.set(-1.5 + i * 0.4, 1, -1.15);
-      pcCase.add(ioPort);
-    }
-
-    // Add power button
-    const powerButtonGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8);
-    const powerButtonMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x27ae60,
-      metalness: 0.5,
-      roughness: 0.5
-    });
-    const powerButton = new THREE.Mesh(powerButtonGeometry, powerButtonMaterial);
-    powerButton.position.set(-1.5, 1.2, 1.15);
-    powerButton.rotation.x = Math.PI / 2;
-    pcCase.add(powerButton);
-
-    scene.add(pcCase);
-  }
-
-  async function loadRealisticModels() {
-    try {
-      // Create simple but distinctive computer components
-      
-      // CPU - make it more prominent
-      const cpuGeometry = new THREE.BoxGeometry(1.0, 1.0, 0.2);
-      const cpuMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x00ff00, // Bright green
-        metalness: 0.8,
-        roughness: 0.2
-      });
-      const cpuMesh = new THREE.Mesh(cpuGeometry, cpuMaterial);
-      cpuMesh.position.set(-1, 0.5, 0.5);
-      cpuMesh.castShadow = true;
-      cpuMesh.receiveShadow = true;
-      pcCase.add(cpuMesh);
-      cpuModel = cpuMesh;
-
-      // CPU heatsink - make it larger and more visible
-      const heatsinkGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.4);
-      const heatsinkMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x8B4513, // Brown
-        metalness: 0.3,
-        roughness: 0.7
-      });
-      const heatsinkMesh = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
-      heatsinkMesh.position.set(-1, 0.5, 0.9);
-      heatsinkMesh.castShadow = true;
-      pcCase.add(heatsinkMesh);
-
-      // GPU - make it larger and more prominent
-      const gpuGeometry = new THREE.BoxGeometry(3.0, 0.4, 1.5);
-      const gpuMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0xff0000, // Bright red
-        metalness: 0.6,
-        roughness: 0.4
-      });
-      const gpuMesh = new THREE.Mesh(gpuGeometry, gpuMaterial);
-      gpuMesh.position.set(0, -0.5, 0.5);
-      gpuMesh.castShadow = true;
-      gpuMesh.receiveShadow = true;
-      pcCase.add(gpuMesh);
-      gpuModel = gpuMesh;
-
-      // GPU fans - make them more visible
-      const fanGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 8);
-      const fanMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x2c3e50,
-        metalness: 0.8,
-        roughness: 0.2
-      });
-      for (let i = 0; i < 2; i++) {
-        const fan = new THREE.Mesh(fanGeometry, fanMaterial);
-        fan.position.set(-0.8 + i * 1.2, -0.5, 0.3);
-        fan.rotation.x = Math.PI / 2;
-        fan.castShadow = true;
-        pcCase.add(fan);
-      }
-
-      // RAM - make it taller and more visible
-      const ramGeometry = new THREE.BoxGeometry(0.4, 2.0, 0.15);
-      const ramMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x0000ff, // Bright blue
-        metalness: 0.4,
-        roughness: 0.6
-      });
-      const ramMesh = new THREE.Mesh(ramGeometry, ramMaterial);
-      ramMesh.position.set(-1.8, 0, 0.5);
-      ramMesh.castShadow = true;
-      ramMesh.receiveShadow = true;
-      pcCase.add(ramMesh);
-      ramModel = ramMesh;
-
-      // Second RAM stick
-      const ram2Mesh = new THREE.Mesh(ramGeometry, ramMaterial);
-      ram2Mesh.position.set(-1.4, 0, 0.5);
-      ram2Mesh.castShadow = true;
-      pcCase.add(ram2Mesh);
-
-      // Storage - make it larger and more visible
-      const storageGeometry = new THREE.BoxGeometry(2.0, 0.15, 1.0);
-      const storageMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0xffff00, // Bright yellow
-        metalness: 0.5,
-        roughness: 0.5
-      });
-      const storageMesh = new THREE.Mesh(storageGeometry, storageMaterial);
-      storageMesh.position.set(0, 1.2, 0.5);
-      storageMesh.castShadow = true;
-      storageMesh.receiveShadow = true;
-      pcCase.add(storageMesh);
-      storageModel = storageMesh;
-
-      // Power supply - make it more visible
-      const psuGeometry = new THREE.BoxGeometry(1.5, 1.0, 2.0);
-      const psuMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x7f8c8d,
-        metalness: 0.7,
-        roughness: 0.3
-      });
-      const psuMesh = new THREE.Mesh(psuGeometry, psuMaterial);
-      psuMesh.position.set(-2.2, -0.8, 0);
-      psuMesh.castShadow = true;
-      pcCase.add(psuMesh);
-
-      // Motherboard - make it larger
-      const motherboardGeometry = new THREE.BoxGeometry(4.0, 0.15, 3.0);
-      const motherboardMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x34495e,
-        metalness: 0.2,
-        roughness: 0.8
-      });
-      const motherboardMesh = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
-      motherboardMesh.position.set(0, 0, 0.3);
-      motherboardMesh.castShadow = true;
-      pcCase.add(motherboardMesh);
-      
-    } catch (error) {
-      console.error('Failed to create realistic models:', error);
-      // Fallback to basic geometric shapes
-      createFallbackModels();
-    }
-  }
-
-  function createFallbackModels() {
-    // CPU with heatsink - make it larger
-    const cpuGeometry = new THREE.BoxGeometry(1.0, 1.0, 0.2);
-    const cpuMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x00ff00, // Bright green
-      metalness: 0.8,
-      roughness: 0.2
-    });
-    const cpuMesh = new THREE.Mesh(cpuGeometry, cpuMaterial);
-    cpuMesh.position.set(-1, 0.5, 0.5);
-    cpuMesh.castShadow = true;
-    cpuMesh.receiveShadow = true;
-    pcCase.add(cpuMesh);
-    cpuModel = cpuMesh;
-
-    // CPU heatsink
-    const heatsinkGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.4);
-    const heatsinkMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x8B4513,
-      metalness: 0.3,
-      roughness: 0.7
-    });
-    const heatsinkMesh = new THREE.Mesh(heatsinkGeometry, heatsinkMaterial);
-    heatsinkMesh.position.set(-1, 0.5, 0.9);
-    heatsinkMesh.castShadow = true;
-    pcCase.add(heatsinkMesh);
-
-    // GPU with PCB - make it larger
-    const gpuGeometry = new THREE.BoxGeometry(3.0, 0.4, 1.5);
-    const gpuMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xff0000, // Bright red
-      metalness: 0.6,
-      roughness: 0.4
-    });
-    const gpuMesh = new THREE.Mesh(gpuGeometry, gpuMaterial);
-    gpuMesh.position.set(0, -0.5, 0.5);
-    gpuMesh.castShadow = true;
-    gpuMesh.receiveShadow = true;
-    pcCase.add(gpuMesh);
-    gpuModel = gpuMesh;
-
-    // GPU PCB
-    const gpuPcbGeometry = new THREE.BoxGeometry(2.8, 0.1, 1.3);
-    const gpuPcbMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x2c3e50,
-      metalness: 0.2,
-      roughness: 0.8
-    });
-    const gpuPcb = new THREE.Mesh(gpuPcbGeometry, gpuPcbMaterial);
-    gpuPcb.position.set(0, -0.5, 0.5);
-    pcCase.add(gpuPcb);
-
-    // RAM sticks - make them taller
-    const ramGeometry = new THREE.BoxGeometry(0.4, 2.0, 0.15);
-    const ramMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x0000ff, // Bright blue
-      metalness: 0.4,
-      roughness: 0.6
-    });
-    const ramMesh = new THREE.Mesh(ramGeometry, ramMaterial);
-    ramMesh.position.set(-1.8, 0, 0.5);
-    ramMesh.castShadow = true;
-    ramMesh.receiveShadow = true;
-    pcCase.add(ramMesh);
-    ramModel = ramMesh;
-
-    // Second RAM stick
-    const ram2Mesh = new THREE.Mesh(ramGeometry, ramMaterial);
-    ram2Mesh.position.set(-1.4, 0, 0.5);
-    ram2Mesh.castShadow = true;
-    pcCase.add(ram2Mesh);
-
-    // Storage drive - make it larger
-    const storageGeometry = new THREE.BoxGeometry(2.0, 0.15, 1.0);
-    const storageMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xffff00, // Bright yellow
-      metalness: 0.5,
-      roughness: 0.5
-    });
-    const storageMesh = new THREE.Mesh(storageGeometry, storageMaterial);
-    storageMesh.position.set(0, 1.2, 0.5);
-    storageMesh.castShadow = true;
-    storageMesh.receiveShadow = true;
-    pcCase.add(storageMesh);
-    storageModel = storageMesh;
-
-    // Power supply - make it larger
-    const psuGeometry = new THREE.BoxGeometry(1.5, 1.0, 2.0);
-    const psuMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x7f8c8d,
-      metalness: 0.7,
-      roughness: 0.3
-    });
-    const psuMesh = new THREE.Mesh(psuGeometry, psuMaterial);
-    psuMesh.position.set(-2.2, -0.8, 0);
-    psuMesh.castShadow = true;
-    pcCase.add(psuMesh);
-
-    // Motherboard - make it larger
-    const motherboardGeometry = new THREE.BoxGeometry(4.0, 0.15, 3.0);
-    const motherboardMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x34495e,
-      metalness: 0.2,
-      roughness: 0.8
-    });
-    const motherboardMesh = new THREE.Mesh(motherboardGeometry, motherboardMaterial);
-    motherboardMesh.position.set(0, 0, 0.3);
-    motherboardMesh.castShadow = true;
-    pcCase.add(motherboardMesh);
-  }
-
-
-
-  function updateComponentModel(type: string) {
-    if (!scene) return;
-
-    let model: THREE.Mesh;
-    let color: string;
-
-    switch (type) {
-      case 'cpu':
-        if (cpuModel) {
-          color = getScoreColor(components.cpu.cinebenchR23, 15000);
-          (cpuModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
-        }
-        break;
-      case 'gpu':
-        if (gpuModel) {
-          color = getScoreColor(components.gpu.gamingFPS, 160);
-          (gpuModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
-        }
-        break;
-      case 'ram':
-        if (ramModel) {
-          color = getScoreColor(components.ram.aida64, 58000);
-          (ramModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
-        }
-        break;
-      case 'storage':
-        if (storageModel) {
-          color = getScoreColor(components.storage.crystalDiskMark, 7000);
-          (storageModel.material as THREE.MeshStandardMaterial).color.setHex(parseInt(color.replace('#', ''), 16));
-        }
-        break;
-    }
-  }
-
-  function animate() {
-    requestAnimationFrame(animate);
-
-    if (pcCase) {
-      pcCase.rotation.y += 0.01;
-    }
-
-    if (renderer && scene && camera) {
-      renderer.render(scene, camera);
-    }
-  }
-
-  function onWindowResize() {
-    if (camera && renderer && canvasContainer) {
-      camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-    }
-  }
-
-  // Hardware components with their specifications and real benchmark data
+  // Hardware components with specifications
   let components = {
     cpu: {
       name: 'Intel Core i5-10400',
@@ -457,7 +62,6 @@
       cache: 12,
       tdp: 65,
       price: 180,
-      // Real benchmark scores
       cinebenchR23: 8500,
       geekbench5: 12000,
       passmark: 15000
@@ -468,7 +72,6 @@
       speed: 3200,
       channels: 2,
       price: 80,
-      // Real benchmark scores
       aida64: 45000,
       latency: 70
     },
@@ -479,11 +82,10 @@
       boostSpeed: 1.78,
       memorySpeed: 14000,
       price: 250,
-      // Real benchmark scores
       timespy: 5500,
       firestrike: 15000,
-      portRoyal: 0, // Not supported
-      gamingFPS: 85 // Average FPS in modern games at 1080p
+      portRoyal: 0,
+      gamingFPS: 85
     },
     storage: {
       name: 'Samsung 970 EVO',
@@ -492,7 +94,6 @@
       readSpeed: 3500,
       writeSpeed: 3300,
       price: 70,
-      // Real benchmark scores
       crystalDiskMark: 3500,
       asSSD: 2800
     }
@@ -506,7 +107,6 @@
     overallScore: 0,
     powerConsumption: 0,
     totalPrice: 0,
-    // Real benchmark results
     realBenchmarks: {
       timespy: 0,
       cinebench: 0,
@@ -515,7 +115,7 @@
     }
   };
 
-  // Available component options with real benchmark data
+  // Available component options
   let componentOptions = {
     cpu: [
       { 
@@ -625,7 +225,7 @@
     storage: 2
   };
 
-  // Calculate performance metrics using real benchmark data
+  // Calculate performance metrics
   function calculatePerformance() {
     const cpu = componentOptions.cpu[selectedComponents.cpu];
     const ram = componentOptions.ram[selectedComponents.ram];
@@ -647,43 +247,36 @@
       storage.bootTime + (ram.latency * 0.1)
     );
 
-    // Gaming score based on real benchmarks
+    // Performance scores
     performance.gamingScore = Math.round(
       (performance.realBenchmarks.timespy * 0.5) +
       (performance.realBenchmarks.gamingFPS * 0.4) +
       (ram.aida64 * 0.001 * 0.1)
     );
 
-    // Productivity score based on real benchmarks
     performance.productivityScore = Math.round(
       (cpu.cinebenchR23 * 0.6) +
       (ram.aida64 * 0.001 * 0.3) +
       (storage.crystalDiskMark * 0.01 * 0.1)
     );
 
-    // Multitasking score based on real benchmarks
     performance.multitaskingScore = Math.round(
       (ram.aida64 * 0.001 * 0.5) +
       (cpu.passmark * 0.001 * 0.4) +
       (storage.crystalDiskMark * 0.01 * 0.1)
     );
 
-    // Overall score
     performance.overallScore = Math.round(
       (performance.gamingScore * 0.4) +
       (performance.productivityScore * 0.35) +
       (performance.multitaskingScore * 0.25)
     );
 
-    // Power consumption
     performance.powerConsumption = Math.round(
       cpu.tdp + (gpu.cores * 0.1) + (ram.capacity * 0.5)
     );
 
-    // Total price
     performance.totalPrice = cpu.price + ram.price + gpu.price + storage.price;
-
-    // Update 3D models - now handled client-side in onMount
   }
 
   // Update components when selection changes
@@ -691,13 +284,24 @@
     selectedComponents[type] = index;
     components[type] = componentOptions[type][index];
     calculatePerformance();
-    updateComponentModel(type);
   }
 
   // Initialize performance calculation
+  onMount(() => {
   calculatePerformance();
+  });
 
-  // Get performance color based on score
+  // Budget optimizer variables
+  let userBudget = 800;
+  let showBudgetOptimizer = false;
+  let budgetRecommendations = {
+    cpu: null,
+    ram: null,
+    gpu: null,
+    storage: null
+  };
+
+  // Utility functions
   function getScoreColor(score: number, maxScore: number = 1000) {
     const percentage = (score / maxScore) * 100;
     if (percentage >= 80) return '#28a745';
@@ -706,7 +310,6 @@
     return '#dc3545';
   }
 
-  // Get performance label
   function getPerformanceLabel(score: number, maxScore: number = 1000) {
     const percentage = (score / maxScore) * 100;
     if (percentage >= 80) return 'Excellent';
@@ -715,18 +318,115 @@
     return 'Poor';
   }
 
-  // Get benchmark description
-  function getBenchmarkDescription(benchmark: string) {
-    const descriptions = {
-      timespy: '3DMark Time Spy - GPU and CPU gaming performance',
-      cinebench: 'Cinebench R23 - CPU rendering performance',
-      gamingFPS: 'Average FPS in modern games at 1080p',
-      bootTime: 'System boot time in seconds'
-    };
-    return descriptions[benchmark] || '';
+  function handleComponentHover(component: string) {
+    hoveredComponent = component;
   }
 
+  function handleComponentLeave() {
+    hoveredComponent = '';
+  }
 
+  // Budget optimization functions
+  function optimizeForBudget() {
+    const budget = userBudget;
+    let remainingBudget = budget;
+    const recommendations = { cpu: null, ram: null, gpu: null, storage: null };
+    
+    // Allocate budget: 40% GPU, 30% CPU, 20% RAM, 10% Storage
+    const gpuBudget = Math.floor(budget * 0.4);
+    const cpuBudget = Math.floor(budget * 0.3);
+    const ramBudget = Math.floor(budget * 0.2);
+    const storageBudget = Math.floor(budget * 0.1);
+
+    // Find best GPU within budget
+    recommendations.gpu = componentOptions.gpu
+      .filter(gpu => gpu.price <= gpuBudget)
+      .sort((a, b) => (b.timespy / b.price) - (a.timespy / a.price))[0];
+
+    // Find best CPU within budget
+    recommendations.cpu = componentOptions.cpu
+      .filter(cpu => cpu.price <= cpuBudget)
+      .sort((a, b) => (b.cinebenchR23 / b.price) - (a.cinebenchR23 / a.price))[0];
+
+    // Find best RAM within budget
+    recommendations.ram = componentOptions.ram
+      .filter(ram => ram.price <= ramBudget)
+      .sort((a, b) => (b.aida64 / a.price) - (a.aida64 / a.price))[0];
+
+    // Find best storage within budget
+    recommendations.storage = componentOptions.storage
+      .filter(storage => storage.price <= storageBudget)
+      .sort((a, b) => (b.crystalDiskMark / a.price) - (a.crystalDiskMark / a.price))[0];
+
+    budgetRecommendations = recommendations;
+    showBudgetOptimizer = true;
+  }
+
+  function applyBudgetRecommendations() {
+    if (budgetRecommendations.cpu) {
+      const cpuIndex = componentOptions.cpu.findIndex(cpu => cpu.name === budgetRecommendations.cpu.name);
+      if (cpuIndex !== -1) updateComponent('cpu', cpuIndex);
+    }
+    if (budgetRecommendations.ram) {
+      const ramIndex = componentOptions.ram.findIndex(ram => ram.name === budgetRecommendations.ram.name);
+      if (ramIndex !== -1) updateComponent('ram', ramIndex);
+    }
+    if (budgetRecommendations.gpu) {
+      const gpuIndex = componentOptions.gpu.findIndex(gpu => gpu.name === budgetRecommendations.gpu.name);
+      if (gpuIndex !== -1) updateComponent('gpu', gpuIndex);
+    }
+    if (budgetRecommendations.storage) {
+      const storageIndex = componentOptions.storage.findIndex(storage => storage.name === budgetRecommendations.storage.name);
+      if (storageIndex !== -1) updateComponent('storage', storageIndex);
+    }
+    showBudgetOptimizer = false;
+  }
+
+  function getBudgetEfficiency(component: any) {
+    if (!component) return 0;
+    const performanceMetric = component.timespy || component.cinebenchR23 || component.aida64 || component.crystalDiskMark;
+    return performanceMetric / component.price;
+  }
+
+  // Spline model control functions
+  function resetCamera() {
+    const splineViewer = document.querySelector('spline-viewer');
+    if (splineViewer && splineViewer.spline) {
+      splineViewer.spline.emitEvent('mouseDown', 'ResetCamera');
+    }
+  }
+
+  function toggleTransparency() {
+    const splineViewer = document.querySelector('spline-viewer');
+    if (splineViewer && splineViewer.spline) {
+      splineViewer.spline.emitEvent('mouseDown', 'ToggleTransparency');
+    }
+  }
+
+  function highlightComponents() {
+    const splineViewer = document.querySelector('spline-viewer');
+    if (splineViewer && splineViewer.spline) {
+      splineViewer.spline.emitEvent('mouseDown', 'HighlightComponents');
+    }
+  }
+
+  // Initialize Spline model with transparency
+  onMount(() => {
+    calculatePerformance();
+    
+    // Wait for Spline to load and set transparency
+    setTimeout(() => {
+      const splineViewer = document.querySelector('spline-viewer');
+      if (splineViewer) {
+        splineViewer.addEventListener('load', () => {
+          // Set initial transparency for better component visibility
+          if (splineViewer.spline) {
+            splineViewer.spline.emitEvent('mouseDown', 'SetTransparency');
+          }
+        });
+      }
+    }, 1000);
+  });
 </script>
 
 <svelte:head>
@@ -737,46 +437,96 @@
   <h1>{title}</h1>
   <p>Adjust hardware components to see how they affect your computer's performance!</p>
 
-  <!-- 3D Interactive Model using model-viewer -->
-  <div class="model-section">
-    <h2>3D Interactive PC Model</h2>
-    <p>Professional 3D visualization using JSCAD modeling and model-viewer display!</p>
-    <div class="model-container">
-      <div class="three-js-container" bind:this={canvasContainer}>
-        <div class="model-overlay">
-          <div class="performance-indicator cpu-indicator">
-            <span class="indicator-label">CPU</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.cpu.cinebenchR23, 15000)}"></div>
-          </div>
-          <div class="performance-indicator gpu-indicator">
-            <span class="indicator-label">GPU</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.gpu.gamingFPS, 160)}"></div>
-          </div>
-          <div class="performance-indicator ram-indicator">
-            <span class="indicator-label">RAM</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.ram.aida64, 58000)}"></div>
-          </div>
-          <div class="performance-indicator storage-indicator">
-            <span class="indicator-label">Storage</span>
-            <div class="indicator-bar" style="background: {getScoreColor(components.storage.crystalDiskMark, 7000)}"></div>
-          </div>
-        </div>
+  <!-- Budget Optimizer Section -->
+  <div class="budget-optimizer-section">
+    <h2>Budget Optimizer</h2>
+    <div class="budget-controls">
+      <div class="budget-input">
+        <label for="budget-input">Your Budget: $</label>
+        <input 
+          type="number" 
+          id="budget-input" 
+          bind:value={userBudget} 
+          min="400" 
+          max="2000" 
+          step="50"
+        />
+
       </div>
+      <button class="optimize-btn" on:click={optimizeForBudget}>
+        Find Best Build
+      </button>
+          </div>
+        
+    {#if showBudgetOptimizer}
+      <div class="budget-recommendations">
+        <h3>Recommended Build for ${userBudget}</h3>
+        <div class="recommendations-grid">
+          {#if budgetRecommendations.cpu}
+            <div class="recommendation-card">
+              <h4>CPU</h4>
+              <p><strong>{budgetRecommendations.cpu.name}</strong></p>
+              <p>Price: ${budgetRecommendations.cpu.price}</p>
+              <p>Performance: {budgetRecommendations.cpu.cinebenchR23.toLocaleString()}</p>
+              <p class="efficiency">Efficiency: {getBudgetEfficiency(budgetRecommendations.cpu).toFixed(1)}</p>
+            </div>
+          {/if}
+          
+          {#if budgetRecommendations.gpu}
+            <div class="recommendation-card">
+              <h4>GPU</h4>
+              <p><strong>{budgetRecommendations.gpu.name}</strong></p>
+              <p>Price: ${budgetRecommendations.gpu.price}</p>
+              <p>Performance: {budgetRecommendations.gpu.timespy.toLocaleString()}</p>
+              <p class="efficiency">Efficiency: {getBudgetEfficiency(budgetRecommendations.gpu).toFixed(1)}</p>
+            </div>
+          {/if}
+          
+          {#if budgetRecommendations.ram}
+            <div class="recommendation-card">
+              <h4>RAM</h4>
+              <p><strong>{budgetRecommendations.ram.name}</strong></p>
+              <p>Price: ${budgetRecommendations.ram.price}</p>
+              <p>Performance: {budgetRecommendations.ram.aida64.toLocaleString()} MB/s</p>
+              <p class="efficiency">Efficiency: {getBudgetEfficiency(budgetRecommendations.ram).toFixed(1)}</p>
+            </div>
+              {/if}
+          
+          {#if budgetRecommendations.storage}
+            <div class="recommendation-card">
+              <h4>Storage</h4>
+              <p><strong>{budgetRecommendations.storage.name}</strong></p>
+              <p>Price: ${budgetRecommendations.storage.price}</p>
+              <p>Performance: {budgetRecommendations.storage.crystalDiskMark.toLocaleString()} MB/s</p>
+              <p class="efficiency">Efficiency: {getBudgetEfficiency(budgetRecommendations.storage).toFixed(1)}</p>
+          </div>
+        {/if}
+      </div>
+        
+        <div class="budget-summary">
+          <div class="total-cost">
+            <strong>Total Cost: ${
+              (budgetRecommendations.cpu?.price || 0) + 
+              (budgetRecommendations.gpu?.price || 0) + 
+              (budgetRecommendations.ram?.price || 0) + 
+              (budgetRecommendations.storage?.price || 0)
+            }</strong>
     </div>
-    <div class="model-legend">
-      <div class="legend-item">
-        <div class="legend-color" style="background: #28a745;"></div>
-        <span>High Performance</span>
+          <div class="budget-remaining">
+            <strong>Remaining: ${userBudget - (
+              (budgetRecommendations.cpu?.price || 0) + 
+              (budgetRecommendations.gpu?.price || 0) + 
+              (budgetRecommendations.ram?.price || 0) + 
+              (budgetRecommendations.storage?.price || 0)
+            )}</strong>
       </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #ffc107;"></div>
-        <span>Medium Performance</span>
       </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #dc3545;"></div>
-        <span>Low Performance</span>
+        
+        <button class="apply-recommendations-btn" on:click={applyBudgetRecommendations}>
+          Apply Recommendations
+        </button>
       </div>
-    </div>
+    {/if}
   </div>
 
   <div class="simulator-grid">
@@ -795,7 +545,6 @@
             <p>Cache: {components.cpu.cache}MB | TDP: {components.cpu.tdp}W</p>
             <p>Price: ${components.cpu.price}</p>
             <p class="benchmark-info">Cinebench R23: {components.cpu.cinebenchR23.toLocaleString()}</p>
-            <p class="benchmark-info">Geekbench 5: {components.cpu.geekbench5.toLocaleString()}</p>
           </div>
           <div class="component-selector">
             <label for="cpu-select">Choose CPU:</label>
@@ -818,7 +567,6 @@
             <p>Channels: {components.ram.channels}</p>
             <p>Price: ${components.ram.price}</p>
             <p class="benchmark-info">AIDA64 Read: {components.ram.aida64.toLocaleString()} MB/s</p>
-            <p class="benchmark-info">Latency: {components.ram.latency}ns</p>
           </div>
           <div class="component-selector">
             <label for="ram-select">Choose RAM:</label>
@@ -843,9 +591,6 @@
             <p>Price: ${components.gpu.price}</p>
             <p class="benchmark-info">3DMark Time Spy: {components.gpu.timespy.toLocaleString()}</p>
             <p class="benchmark-info">Gaming FPS: {components.gpu.gamingFPS} FPS</p>
-            {#if components.gpu.portRoyal > 0}
-              <p class="benchmark-info">Port Royal: {components.gpu.portRoyal.toLocaleString()}</p>
-            {/if}
           </div>
           <div class="component-selector">
             <label for="gpu-select">Choose GPU:</label>
@@ -869,7 +614,6 @@
             <p>Write Speed: {components.storage.writeSpeed}MB/s</p>
             <p>Price: ${components.storage.price}</p>
             <p class="benchmark-info">CrystalDiskMark: {components.storage.crystalDiskMark.toLocaleString()} MB/s</p>
-            <p class="benchmark-info">AS SSD: {components.storage.asSSD.toLocaleString()} MB/s</p>
           </div>
           <div class="component-selector">
             <label for="storage-select">Choose Storage:</label>
@@ -969,6 +713,23 @@
       </div>
     </div>
   </div>
+
+  <!-- Interactive 3D Computer Model -->
+  <div class="model-section">
+    <h2>Interactive 3D Computer Model</h2>
+    <p>Explore the computer components in 3D! Click on parts to see details and performance information.</p>
+    <div class="spline-container">
+      <spline-viewer
+        url="https://prod.spline.design/oTp96jd9q-EYn7Wm/scene.splinecode"
+        class="spline-viewer"
+      ></spline-viewer>
+    </div>
+    <div class="model-controls">
+      <button class="control-btn" on:click={resetCamera}>Reset View</button>
+      <button class="control-btn" on:click={toggleTransparency}>Toggle Transparency</button>
+      <button class="control-btn" on:click={highlightComponents}>Highlight Components</button>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -979,7 +740,7 @@
   }
 
   h1 {
-    color: #333;
+    color: white;
     margin-bottom: 0.5rem;
     text-align: center;
   }
@@ -1002,59 +763,7 @@
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
-    cursor: pointer;
-  }
-
-
-
-  h1 {
-    color: #333;
-    margin-bottom: 0.5rem;
-    text-align: center;
-  }
-
-  .model-container {
-    width: 100%;
-    height: 400px;
-    background: #1a1a1a;
-    border-radius: 12px;
-    margin: 1rem 0;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .three-js-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-
-  .three-js-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .model-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    color: white;
-  }
-
-  .placeholder-content {
-    text-align: center;
-    padding: 2rem;
-  }
-
-  .placeholder-content h3 {
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-  }
-
-  .placeholder-content p {
+    display: inline-block;
     margin-bottom: 1rem;
     opacity: 0.8;
   }
@@ -1130,6 +839,195 @@
 
   model-viewer::part(default-progress-mask) {
     background-color: #007bff;
+  }
+
+  .simulator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .component-section, .performance-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+  }
+
+
+
+  .spline-container {
+    width: 100%;
+    height: 500px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 12px;
+    margin: 1rem 0;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #333;
+  }
+
+  .spline-viewer {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  .model-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .control-btn {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+  }
+
+  .control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .budget-optimizer-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    margin-bottom: 2rem;
+  }
+
+  .budget-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .budget-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .budget-input label {
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .budget-input input {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 120px;
+  }
+
+  .optimize-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .optimize-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .budget-recommendations {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .budget-recommendations h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .recommendation-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    text-align: center;
+  }
+
+  .recommendation-card h4 {
+    color: #007bff;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .recommendation-card p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .recommendation-card .efficiency {
+    color: #28a745 !important;
+    font-weight: 600 !important;
+  }
+
+  .budget-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .total-cost {
+    color: #495057;
+  }
+
+  .budget-remaining {
+    color: #28a745;
+  }
+
+  .apply-recommendations-btn {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+
+  .apply-recommendations-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
   }
 
   .simulator-grid {
@@ -1241,7 +1139,6 @@
     font-size: 1.5rem;
     font-weight: bold;
     color: #007bff;
-
     margin-bottom: 0.5rem;
   }
 
@@ -1351,9 +1248,23 @@
       grid-template-columns: 1fr;
     }
 
-    .model-legend {
+    .budget-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .budget-input {
+      justify-content: center;
+    }
+
+    .recommendations-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .budget-summary {
       flex-direction: column;
       gap: 0.5rem;
+      text-align: center;
     }
   }
 </style>
