@@ -11,7 +11,7 @@
     { name: 'Learn', path: '/learn', description: 'Learn about computer components with interactive 2D diagrams and explanations. Quiz yourself with practice questions.' },
     { name: 'Explore', path: '/explore', description: 'Explore the different parts of a 3D computer visually and interactively.' },
     { name: 'Flashcards', path: '/flashcards', description: 'Practice and test your knowledge with computer component flashcards.' },
-    { name: 'Build', path: '/game_page', description: 'Build your own computer and understand the specs.' },
+    { name: 'Build', path: '/build', description: 'Build your own computer and understand the specs.' },
     { name: 'Interactive', path: '/interactive', description: 'Interact with computer models and simulations.' },
   ];
 
@@ -259,8 +259,14 @@
 <div bind:this={container} class="three-container"></div>
 
 <div class="main-content">
-  <h1>Thinking Machine</h1>
-  <p>Description/about the product</p>
+  <div class="introduction">
+    <h1>Welcome to the Thinking Machine!</h1>
+    <p>Have you ever looked at your computer screen and wondered,
+      <em>how does it all work</em>? If so, you've come to the right place. Here at the Thinking Machine,
+      you can learn all about the inner workings of a computer through interactive learning tools, 3D models,
+      and simulations. Whether you're a curious beginner or a tech enthusiast, our hands-on learning approach
+      makes understanding hardware components fun and intuitive.<br><br>Let's get started!</p>
+  </div>
   <div class="dropdown-container">
     <button class="dropdown-toggle" on:click={toggleDropdown} aria-expanded={dropdownOpen}>
       {dropdownOpen ? '▼' : '►'} Explore each page
@@ -280,7 +286,7 @@
       </div>
     {/if}
   </div>
-  <a href="/learn" class="cta-button">Go to Product</a>
+  <a href="/learn" class="cta-button">Start learning</a>
 </div>
 
 <style>
@@ -312,20 +318,33 @@
     z-index: 1;
   }
 
-  .main-content h1 {
-    color: white;
+  .introduction {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .introduction h1 {
+    color: #5dc462;
     font-size: 4rem;
     font-weight: 300;
     margin-bottom: 2rem;
     letter-spacing: 2px;
+    text-align: center;
   }
 
-  .main-content p {
+  .introduction p {
     color: white;
     font-size: 2rem;
     font-weight: 300;
     margin-bottom: 3rem;
     opacity: 0.9;
+    max-width: 1000px;
+    align-self: center;
+    text-align: center;
+    line-height: 1.5;
+    margin-left: auto; 
+    margin-right: auto; 
   }
 
   .cta-button {
@@ -384,6 +403,7 @@
     gap: 0;
     z-index: 10;
   }
+  
   .dropdown-page {
     border-bottom: 1px solid #e0e0e0;
     padding: 0 20px;

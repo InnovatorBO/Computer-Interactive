@@ -15,12 +15,22 @@
         {menuOpen ? '✕' : '☰'}
       </button>
       <div class="nav-links" class:open={menuOpen}>
-        <a href="/" class:active={$page.url.pathname === '/'}>Home</a>
-        <a href="/learn" class:active={$page.url.pathname === '/learn'}>Learn</a>
-        <a href="/flashcards" class:active={$page.url.pathname === '/flashcards'}>Flashcards</a>
-        <a href="/interactive" class:active={$page.url.pathname === '/interactive'}>Interactive</a>
-        <a href="/explore" class:active={$page.url.pathname === '/explore'}>Explore</a>
-        <a href="/build" class:active={$page.url.pathname === '/build'}>Build</a>
+        {#each [
+          { path: '/', name: 'Home' },
+          { path: '/learn', name: 'Learn' },
+          { path: '/flashcards', name: 'Flashcards' },
+          { path: '/interactive', name: 'Interactive' },
+          { path: '/explore', name: 'Explore' },
+          { path: '/build', name: 'Build' }
+        ] as link}
+          <a 
+            href={link.path}
+            class:active={$page.url.pathname === link.path}
+            on:click={() => menuOpen = false}
+          >
+            {link.name}
+          </a>
+        {/each}
       </div>
     </div>
   </nav>
