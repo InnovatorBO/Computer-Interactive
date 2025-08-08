@@ -1051,6 +1051,7 @@
     font-weight: 600;
     margin-bottom: 0.3rem;
     font-size: 0.9rem;
+    color: #333;
   }
   
   .progress-container {
